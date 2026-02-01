@@ -382,23 +382,45 @@
                 return;
             }
 
-            grid.innerHTML = snapshots.map(snapshot => {
+            // Clear existing content
+            grid.innerHTML = '';
+
+            snapshots.forEach(snapshot => {
                 const timestamp = new Date(snapshot.timestamp);
-                const detections = snapshot.metadata.detection_count || 0;
+                const detections = parseInt(snapshot.metadata.detection_count, 10) || 0;
                 const timeText = !isNaN(timestamp.getTime())
                     ? timestamp.toLocaleTimeString()
                     : 'Unknown time';
 
-                return `
-                    <div class="snapshot" onclick="openModal('${snapshot.path}')">
-                        <img src="${snapshot.path}" alt="Detection snapshot" loading="lazy">
-                        <div class="snapshot-info">
-                            <div class="time">${timeText}</div>
-                            <div class="detections">${detections} detection(s)</div>
-                        </div>
-                    </div>
-                `;
-            }).join('');
+                // Create elements using DOM methods for safety
+                const snapshotDiv = document.createElement('div');
+                snapshotDiv.className = 'snapshot';
+                snapshotDiv.addEventListener('click', () => openModal(snapshot.path));
+
+                const img = document.createElement('img');
+                img.src = snapshot.path;
+                img.alt = 'Detection snapshot';
+                img.loading = 'lazy';
+
+                const infoDiv = document.createElement('div');
+                infoDiv.className = 'snapshot-info';
+
+                const timeDiv = document.createElement('div');
+                timeDiv.className = 'time';
+                timeDiv.textContent = timeText;
+
+                const detectionsDiv = document.createElement('div');
+                detectionsDiv.className = 'detections';
+                detectionsDiv.textContent = `${detections} detection(s)`;
+
+                infoDiv.appendChild(timeDiv);
+                infoDiv.appendChild(detectionsDiv);
+
+                snapshotDiv.appendChild(img);
+                snapshotDiv.appendChild(infoDiv);
+
+                grid.appendChild(snapshotDiv);
+            });
         }
 
         function loadHourlyChart(hourlyData) {
@@ -457,6 +479,13 @@
             });
         }
 
+        // Helper function to escape HTML
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
         function loadZones(zones) {
             const list = document.getElementById('zoneList');
 
@@ -465,7 +494,10 @@
                 return;
             }
 
-            list.innerHTML = zones.map(zone => {
+            // Clear existing content
+            list.innerHTML = '';
+
+            zones.forEach(zone => {
                 let color = '[0, 255, 0]';
                 try {
                     color = zone.color;
@@ -475,14 +507,32 @@
                     color = 'rgb(0, 255, 0)';
                 }
 
-                return `
-                    <div class="zone-item">
-                        <div class="zone-color" style="background-color: ${color}"></div>
-                        <div class="zone-name">${zone.name}</div>
-                        <div class="zone-coords">(${zone.x}, ${zone.y}) r=${zone.radius}</div>
-                    </div>
-                `;
-            }).join('');
+                // Create elements using DOM methods for safety
+                const zoneItem = document.createElement('div');
+                zoneItem.className = 'zone-item';
+
+                const zoneColorDiv = document.createElement('div');
+                zoneColorDiv.className = 'zone-color';
+                zoneColorDiv.style.backgroundColor = color;
+
+                const zoneNameDiv = document.createElement('div');
+                zoneNameDiv.className = 'zone-name';
+                zoneNameDiv.textContent = zone.name; // textContent auto-escapes
+
+                const zoneCoordsDiv = document.createElement('div');
+                zoneCoordsDiv.className = 'zone-coords';
+                // Ensure numeric values are treated as numbers
+                const x = parseFloat(zone.x) || 0;
+                const y = parseFloat(zone.y) || 0;
+                const radius = parseFloat(zone.radius) || 0;
+                zoneCoordsDiv.textContent = `(${x}, ${y}) r=${radius}`;
+
+                zoneItem.appendChild(zoneColorDiv);
+                zoneItem.appendChild(zoneNameDiv);
+                zoneItem.appendChild(zoneCoordsDiv);
+
+                list.appendChild(zoneItem);
+            });
         }
 
         function openModal(imagePath) {
