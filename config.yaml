@@ -3,12 +3,11 @@
 
 # Stream Source
 stream:
-  # URL to HLS stream from TerrariumPI
-  # Format: http://localhost:8090/webcam/{camera_id}/stream.m3u8
-  url: "http://localhost:8090/webcam/1/stream.m3u8"
+  # URL to HLS stream from TerrariumPI via nocturnal-eye bypass endpoint
+  url: "http://localhost:8090/nocturnal-eye/stream.m3u8"
   
   # Fallback to test video file if stream unavailable
-  fallback_enabled: true
+  fallback_enabled: false
   fallback_path: "tests/sample_video.mp4"
   
   # Frame processing rate (process every N frames)
@@ -24,10 +23,10 @@ stream:
 # Motion Detection
 motion:
   # Sensitivity (lower = more sensitive, range: 1-100)
-  sensitivity: 16
+  sensitivity: 30
   
   # Minimum area in pixels to consider as gecko
-  min_area: 1000
+  min_area: 500
   
   # Maximum area in pixels to consider as gecko
   max_area: 8000
@@ -82,7 +81,7 @@ zones:
 # Schedule
 schedule:
   # Only process during these hours (24-hour format)
-  enabled: true
+  enabled: false
   start_time: "20:00"  # 8 PM
   end_time: "08:00"    # 8 AM
   
@@ -110,7 +109,7 @@ api:
 # Snapshot Capture
 snapshots:
   # Save annotated snapshot every N seconds
-  save_interval: 30
+  save_interval: 5
   
   # Maximum number of snapshots to keep
   max_snapshots: 200
