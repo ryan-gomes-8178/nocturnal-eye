@@ -383,15 +383,15 @@
             }
 
             grid.innerHTML = snapshots.map(snapshot => {
-                const timestamp = new Date(snapshot.timestamp);
-                const detections = snapshot.metadata.detection_count || 0;
+                const timestamp = new Date(snapshot?.timestamp);
+                const detections = snapshot?.metadata?.detection_count || 0;
                 const timeText = !isNaN(timestamp.getTime())
                     ? timestamp.toLocaleTimeString()
                     : 'Unknown time';
 
                 return `
-                    <div class="snapshot" onclick="openModal('${snapshot.path}')">
-                        <img src="${snapshot.path}" alt="Detection snapshot" loading="lazy">
+                    <div class="snapshot" onclick="openModal('${snapshot?.path}')">
+                        <img src="${snapshot?.path}" alt="Detection snapshot" loading="lazy">
                         <div class="snapshot-info">
                             <div class="time">${timeText}</div>
                             <div class="detections">${detections} detection(s)</div>
@@ -472,7 +472,7 @@
             list.innerHTML = zones.map(zone => {
                 let color = '[0, 255, 0]';
                 try {
-                    color = zone.color;
+                    color = zone?.color;
                     const rgb = JSON.parse(color);
                     color = `rgb(${rgb[2]}, ${rgb[1]}, ${rgb[0]})`; // BGR to RGB
                 } catch (e) {
@@ -482,8 +482,8 @@
                 return `
                     <div class="zone-item">
                         <div class="zone-color" style="background-color: ${color}"></div>
-                        <div class="zone-name">${zone.name}</div>
-                        <div class="zone-coords">(${zone.x}, ${zone.y}) r=${zone.radius}</div>
+                        <div class="zone-name">${zone?.name}</div>
+                        <div class="zone-coords">(${zone?.x}, ${zone?.y}) r=${zone?.radius}</div>
                     </div>
                 `;
             }).join('');
