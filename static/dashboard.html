@@ -284,6 +284,26 @@
             </div>
         </div>
 
+        <div class="grid" style="grid-column: 1 / -1; margin-bottom: 30px;">
+            <div class="card" style="grid-column: 1 / -1;">
+                <h2>🎥 Live Stream with Zones</h2>
+                <div style="position: relative; width: 100%; max-width: 960px; margin: 0 auto;">
+                    <video id="liveStream" 
+                           style="width: 100%; background: #000; border-radius: 8px;"
+                           controls>
+                        <source src="http://localhost:8090/nocturnal-eye/stream.m3u8" type="application/x-mpegURL">
+                        Your browser does not support the video tag.
+                    </video>
+                    <canvas id="zonesOverlay" 
+                            style="position: absolute; top: 0; left: 0; width: 100%; max-width: 960px; border-radius: 8px; cursor: crosshair;">
+                    </canvas>
+                </div>
+                <p style="margin-top: 10px; color: #8be9fd; font-size: 0.9em;">
+                    🟢 Feeding Station | 🟠 Basking Spot | 🔵 Hide Box
+                </p>
+            </div>
+        </div>
+
         <div class="grid">
             <div class="card" style="grid-column: 1 / -1;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
@@ -491,6 +511,54 @@
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') closeModal();
         });
+
+        // Initialize zones overlay on live stream
+        async function initZonesOverlay() {
+            try {
+                const response = await fetch('/api/zones');
+                const zones = await response.json();
+                
+                const canvas = document.getElementById('zonesOverlay');
+                const ctx = canvas.getContext('2d');
+                
+                function resizeCanvas() {
+                    const parentRect = canvas.parentElement.getBoundingClientRect();
+                    canvas.width = parentRect.width;
+                    canvas.height = parentRect.height;
+                    
+                    // Scale factor for canvas vs actual stream (1920x1080)
+                    const scaleX = canvas.width / 1920;
+                    const scaleY = canvas.height / 1080;
+                    
+                    // Draw zones
+                    zones.forEach(zone => {
+                        const scaledX = zone.x * scaleX;
+                        const scaledY = zone.y * scaleY;
+                        const scaledRadius = zone.radius * Math.min(scaleX, scaleY);
+                        
+                        // Draw circle
+                        ctx.beginPath();
+                        ctx.arc(scaledX, scaledY, scaledRadius, 0, 2 * Math.PI);
+                        ctx.strokeStyle = `rgb(${zone.color[0]}, ${zone.color[1]}, ${zone.color[2]})`;
+                        ctx.lineWidth = 3;
+                        ctx.stroke();
+                        
+                        // Draw label
+                        ctx.fillStyle = `rgba(${zone.color[0]}, ${zone.color[1]}, ${zone.color[2]}, 0.8)`;
+                        ctx.font = 'bold 14px Arial';
+                        ctx.fillText(zone.name, scaledX - scaledRadius, scaledY - scaledRadius - 10);
+                    });
+                }
+                
+                window.addEventListener('resize', resizeCanvas);
+                resizeCanvas();
+            } catch (e) {
+                console.error('Error loading zones:', e);
+            }
+        }
+        
+        // Initialize when page loads
+        setTimeout(initZonesOverlay, 500);
     </script>
 </body>
 
