@@ -61,19 +61,19 @@ tracking:
 # Define areas in your terrarium for behavioral analysis
 zones:
   - name: "Feeding Station"
-    x: 100
-    y: 200
+    x: 1800
+    y: 280
     radius: 50
     color: [0, 255, 0]  # Green
     
   - name: "Basking Spot"
-    x: 500
+    x: 1420
     y: 100
     radius: 80
     color: [255, 165, 0]  # Orange
     
   - name: "Hide Box"
-    x: 300
+    x: 200
     y: 400
     radius: 70
     color: [0, 0, 255]  # Blue
