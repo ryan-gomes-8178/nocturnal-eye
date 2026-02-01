@@ -17,6 +17,7 @@ from src.motion_detector import MotionDetector
 from src.database import Database
 from src.tracker import ObjectTracker, ZoneAnalyzer
 from src.visualizer import HeatmapGenerator
+from src.snapshot_manager import SnapshotManager
 
 
 class NocturnalEye:
@@ -36,6 +37,7 @@ class NocturnalEye:
             self.motion_detector = MotionDetector(self.config)
             self.tracker = ObjectTracker(self.config)
             self.heatmap_generator = HeatmapGenerator(self.config)
+            self.snapshot_manager = SnapshotManager(self.config)
             
             # Load zones from database
             zones = self.database.get_zones()
@@ -186,6 +188,9 @@ class NocturnalEye:
                 if motion_events:
                     # Update tracker
                     tracked_objects = self.tracker.update(motion_events, current_time)
+                    
+                    # Save snapshot with annotations
+                    self.snapshot_manager.save_snapshot(frame, motion_events, self.zone_analyzer.zones if self.zone_analyzer else None)
                     
                     # Add to batch for database insertion
                     batch_events.extend(motion_events)
