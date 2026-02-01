@@ -229,7 +229,7 @@ class SnapshotManager:
                 try:
                     with open(metadata_file, 'r') as f:
                         metadata = json.load(f)
-                except:
+                except Exception:
                     pass
             
             result.append({

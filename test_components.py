@@ -11,6 +11,7 @@ import logging
 import yaml
 import numpy as np
 import cv2
+import time
 from pathlib import Path
 from datetime import datetime, timedelta
 
@@ -342,7 +343,6 @@ def test_snapshot_manager():
         logger.info("  ✓ Save interval correctly prevents duplicate snapshots")
     
     # Wait and test another snapshot
-    import time
     time.sleep(1.1)
     logger.info("✓ Testing snapshot after interval...")
     snapshot_path3 = manager.save_snapshot(frame, motion_events, zones)
