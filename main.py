@@ -154,6 +154,7 @@ class NocturnalEye:
         # Connect to stream
         if not self.stream_consumer.connect():
             logger.error("Failed to connect to stream. Exiting.")
+            self.shutdown()
             return
         
         logger.info("✓ Connected to video stream")
