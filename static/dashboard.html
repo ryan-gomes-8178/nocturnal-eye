@@ -287,15 +287,15 @@
         <div class="grid" style="grid-column: 1 / -1; margin-bottom: 30px;">
             <div class="card" style="grid-column: 1 / -1;">
                 <h2>🎥 Live Stream with Zones</h2>
-                <div style="position: relative; width: 100%; max-width: 960px; margin: 0 auto;">
+                <div style="position: relative; width: 100%; max-width: 960px; margin: 0 auto; background: #000; border-radius: 8px; overflow: hidden;">
                     <video id="liveStream" 
-                           style="width: 100%; background: #000; border-radius: 8px;"
+                           style="width: 100%; height: auto; display: block; background: #000;"
                            controls>
                         <source src="http://localhost:8090/nocturnal-eye/stream.m3u8" type="application/x-mpegURL">
                         Your browser does not support the video tag.
                     </video>
                     <canvas id="zonesOverlay" 
-                            style="position: absolute; top: 0; left: 0; width: 100%; max-width: 960px; border-radius: 8px; cursor: crosshair;">
+                            style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: crosshair;">
                     </canvas>
                 </div>
                 <p style="margin-top: 10px; color: #8be9fd; font-size: 0.9em;">
@@ -516,19 +516,29 @@
         async function initZonesOverlay() {
             try {
                 const response = await fetch('/api/zones');
-                const zones = await response.json();
+                const data = await response.json();
+                const zones = data.zones || [];
+                
+                if (zones.length === 0) {
+                    console.warn('No zones loaded');
+                    return;
+                }
                 
                 const canvas = document.getElementById('zonesOverlay');
+                const videoContainer = canvas.parentElement;
                 const ctx = canvas.getContext('2d');
                 
                 function resizeCanvas() {
-                    const parentRect = canvas.parentElement.getBoundingClientRect();
-                    canvas.width = parentRect.width;
-                    canvas.height = parentRect.height;
+                    const rect = videoContainer.getBoundingClientRect();
+                    canvas.width = rect.width;
+                    canvas.height = rect.height;
                     
                     // Scale factor for canvas vs actual stream (1920x1080)
                     const scaleX = canvas.width / 1920;
                     const scaleY = canvas.height / 1080;
+                    
+                    // Clear canvas
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
                     
                     // Draw zones
                     zones.forEach(zone => {
@@ -536,29 +546,49 @@
                         const scaledY = zone.y * scaleY;
                         const scaledRadius = zone.radius * Math.min(scaleX, scaleY);
                         
-                        // Draw circle
+                        // Parse color - handle both string and array formats
+                        let color = [0, 255, 0];
+                        if (typeof zone.color === 'string') {
+                            const colorStr = zone.color.replace(/[\[\]]/g, '');
+                            color = colorStr.split(',').map(c => parseInt(c.trim()));
+                        } else if (Array.isArray(zone.color)) {
+                            color = zone.color;
+                        }
+                        
+                        // Draw circle outline
                         ctx.beginPath();
                         ctx.arc(scaledX, scaledY, scaledRadius, 0, 2 * Math.PI);
-                        ctx.strokeStyle = `rgb(${zone.color[0]}, ${zone.color[1]}, ${zone.color[2]})`;
-                        ctx.lineWidth = 3;
+                        ctx.strokeStyle = `rgb(${color[0]}, ${color[1]}, ${color[2]})`;
+                        ctx.lineWidth = 4;
                         ctx.stroke();
                         
-                        // Draw label
-                        ctx.fillStyle = `rgba(${zone.color[0]}, ${zone.color[1]}, ${zone.color[2]}, 0.8)`;
-                        ctx.font = 'bold 14px Arial';
-                        ctx.fillText(zone.name, scaledX - scaledRadius, scaledY - scaledRadius - 10);
+                        // Draw label background
+                        ctx.fillStyle = `rgba(${color[0]}, ${color[1]}, ${color[2]}, 0.3)`;
+                        ctx.font = 'bold 16px Arial';
+                        const textMetrics = ctx.measureText(zone.name);
+                        const textWidth = textMetrics.width;
+                        const textX = scaledX - scaledRadius;
+                        const textY = scaledY - scaledRadius - 20;
+                        ctx.fillRect(textX - 5, textY - 18, textWidth + 10, 22);
+                        
+                        // Draw label text
+                        ctx.fillStyle = `rgb(${color[0]}, ${color[1]}, ${color[2]})`;
+                        ctx.fillText(zone.name, textX, textY);
                     });
+                    
+                    console.log(`Drew ${zones.length} zones`);
                 }
                 
                 window.addEventListener('resize', resizeCanvas);
-                resizeCanvas();
+                // Initial draw
+                setTimeout(resizeCanvas, 100);
             } catch (e) {
                 console.error('Error loading zones:', e);
             }
         }
         
         // Initialize when page loads
-        setTimeout(initZonesOverlay, 500);
+        setTimeout(initZonesOverlay, 1000);
     </script>
 </body>
 
