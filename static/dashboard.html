@@ -384,7 +384,7 @@
 
             grid.innerHTML = snapshots.map(snapshot => {
                 const timestamp = new Date(snapshot.timestamp);
-                const detections = snapshot.metadata.detection_count || 0;
+                const detections = snapshot.metadata?.detection_count || 0;
                 const timeText = !isNaN(timestamp.getTime())
                     ? timestamp.toLocaleTimeString()
                     : 'Unknown time';
