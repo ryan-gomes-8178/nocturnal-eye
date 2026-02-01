@@ -295,7 +295,7 @@
                         Your browser does not support the video tag.
                     </video>
                     <canvas id="zonesOverlay" 
-                            style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: crosshair;">
+                            style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;">
                     </canvas>
                 </div>
                 <p style="margin-top: 10px; color: #8be9fd; font-size: 0.9em;">
@@ -562,18 +562,21 @@
                         ctx.lineWidth = 4;
                         ctx.stroke();
                         
-                        // Draw label background
+                        // Draw label with better positioning
                         ctx.fillStyle = `rgba(${color[0]}, ${color[1]}, ${color[2]}, 0.3)`;
                         ctx.font = 'bold 16px Arial';
                         const textMetrics = ctx.measureText(zone.name);
                         const textWidth = textMetrics.width;
-                        const textX = scaledX - scaledRadius;
-                        const textY = scaledY - scaledRadius - 20;
-                        ctx.fillRect(textX - 5, textY - 18, textWidth + 10, 22);
+                        
+                        // Position label to the right and above the circle
+                        const labelX = scaledX + scaledRadius + 10;
+                        const labelY = scaledY - scaledRadius;
+                        
+                        ctx.fillRect(labelX - 5, labelY - 20, textWidth + 10, 22);
                         
                         // Draw label text
                         ctx.fillStyle = `rgb(${color[0]}, ${color[1]}, ${color[2]})`;
-                        ctx.fillText(zone.name, textX, textY);
+                        ctx.fillText(zone.name, labelX, labelY - 3);
                     });
                     
                     console.log(`Drew ${zones.length} zones`);
