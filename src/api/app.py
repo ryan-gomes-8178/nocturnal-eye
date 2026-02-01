@@ -21,7 +21,8 @@ with open('config.yaml', 'r') as f:
 
 # Initialize Flask app
 app = Flask(__name__, static_folder='../../static', static_url_path='/static')
-CORS(app)
+allowed_origins = config.get('allowed_cors_origins', ['http://localhost:5001'])
+CORS(app, origins=allowed_origins)
 
 # Initialize components
 db = Database(config)
