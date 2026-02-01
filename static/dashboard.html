@@ -385,12 +385,15 @@
             grid.innerHTML = snapshots.map(snapshot => {
                 const timestamp = new Date(snapshot.timestamp);
                 const detections = snapshot.metadata.detection_count || 0;
+                const timeText = !isNaN(timestamp.getTime())
+                    ? timestamp.toLocaleTimeString()
+                    : 'Unknown time';
 
                 return `
                     <div class="snapshot" onclick="openModal('${snapshot.path}')">
                         <img src="${snapshot.path}" alt="Detection snapshot" loading="lazy">
                         <div class="snapshot-info">
-                            <div class="time">${timestamp.toLocaleTimeString()}</div>
+                            <div class="time">${timeText}</div>
                             <div class="detections">${detections} detection(s)</div>
                         </div>
                     </div>
