@@ -23,16 +23,16 @@ stream:
 # Motion Detection
 motion:
   # Sensitivity (lower = more sensitive, range: 1-100)
-  sensitivity: 30
+  sensitivity: 55
   
   # Minimum area in pixels to consider as gecko
-  min_area: 500
+  min_area: 1200
   
   # Maximum area in pixels to consider as gecko
   max_area: 8000
   
   # Number of frames to use for background history
-  history_frames: 500
+  history_frames: 1000
   
   # Detect and remove shadows
   detect_shadows: true
@@ -55,7 +55,7 @@ tracking:
   max_tracking_distance: 100
   
   # Minimum consecutive detections to confirm object
-  min_detections: 3
+  min_detections: 10
 
 # Zones of Interest
 # Define areas in your terrarium for behavioral analysis
