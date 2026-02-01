@@ -387,7 +387,7 @@
 
             snapshots.forEach(snapshot => {
                 const timestamp = new Date(snapshot.timestamp);
-                const detections = parseInt(snapshot.metadata.detection_count, 10) || 0;
+                const detections = parseInt(snapshot.metadata?.detection_count, 10) || 0;
                 const timeText = !isNaN(timestamp.getTime())
                     ? timestamp.toLocaleTimeString()
                     : 'Unknown time';
@@ -477,13 +477,6 @@
                     }
                 }
             });
-        }
-
-        // Helper function to escape HTML
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
         }
 
         function loadZones(zones) {
