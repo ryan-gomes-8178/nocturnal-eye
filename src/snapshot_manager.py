@@ -118,8 +118,8 @@ class SnapshotManager:
                         color,
                         2
                     )
-                except:
-                    pass
+                except (KeyError, TypeError, ValueError, cv2.error) as e:
+                    logger.exception("Failed to draw zone annotation for zone %r: %s", zone, e)
         
         # Draw motion detections
         for i, event in enumerate(motion_events):
