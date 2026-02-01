@@ -16,6 +16,7 @@ from src.stream_consumer import StreamConsumer
 from src.motion_detector import MotionDetector
 from src.database import Database
 from src.tracker import ObjectTracker, ZoneAnalyzer
+from src.notification_trigger import notify_gecko_detection
 from src.visualizer import HeatmapGenerator
 from src.snapshot_manager import SnapshotManager
 
@@ -192,6 +193,13 @@ class NocturnalEye:
                     
                     # Save snapshot with annotations
                     self.snapshot_manager.save_snapshot(frame, motion_events, self.zone_analyzer.zones if self.zone_analyzer else None)
+                    
+                    # Trigger Telegram notification to TerrariumPI
+                    if tracked_objects:
+                        primary_object = tracked_objects[0]
+                        zone_name = primary_object.get('zone') if primary_object else None
+                        confidence = primary_object.get('confidence', 0) if primary_object else 0
+                        notify_gecko_detection(confidence=confidence, zone=zone_name)
                     
                     # Add to batch for database insertion
                     batch_events.extend(motion_events)
