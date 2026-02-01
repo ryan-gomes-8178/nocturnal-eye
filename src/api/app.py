@@ -2,7 +2,7 @@
 Flask API - REST API for accessing gecko activity data
 """
 
-from flask import Flask, jsonify, request, send_file
+from flask import Flask, jsonify, request, send_file, send_from_directory
 from flask_cors import CORS
 import logging
 from datetime import datetime, timedelta
@@ -11,6 +11,7 @@ import yaml
 
 from src.database import Database
 from src.visualizer import HeatmapGenerator, ActivityVisualizer
+from src.snapshot_manager import SnapshotManager
 
 logger = logging.getLogger(__name__)
 
@@ -19,13 +20,20 @@ with open('config.yaml', 'r') as f:
     config = yaml.safe_load(f)
 
 # Initialize Flask app
-app = Flask(__name__)
+app = Flask(__name__, static_folder='../../static', static_url_path='/static')
 CORS(app)
 
 # Initialize components
 db = Database(config)
 heatmap_gen = HeatmapGenerator(config)
 activity_viz = ActivityVisualizer(config)
+snapshot_mgr = SnapshotManager(config)
+
+
+@app.route('/')
+def dashboard():
+    """Serve the dashboard"""
+    return send_from_directory(app.static_folder, 'dashboard.html')
 
 
 @app.route('/api/health', methods=['GET'])
@@ -228,6 +236,64 @@ def cleanup_database():
         })
     except Exception as e:
         logger.error(f"Error cleaning database: {e}")
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/snapshots/recent', methods=['GET'])
+def get_recent_snapshots():
+    """Get recent detection snapshots"""
+    try:
+        limit = int(request.args.get('limit', 20))
+        snapshots = snapshot_mgr.get_recent_snapshots(limit)
+        
+        return jsonify({
+            'count': len(snapshots),
+            'snapshots': snapshots
+        })
+    except Exception as e:
+        logger.error(f"Error getting snapshots: {e}")
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/snapshots/count', methods=['GET'])
+def get_snapshot_count():
+    """Get total number of snapshots"""
+    try:
+        count = snapshot_mgr.get_snapshot_count()
+        return jsonify({'count': count})
+    except Exception as e:
+        logger.error(f"Error getting snapshot count: {e}")
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/dashboard/summary', methods=['GET'])
+def get_dashboard_summary():
+    """Get complete dashboard summary"""
+    try:
+        # Today's activity
+        today = datetime.now()
+        daily_summary = db.get_daily_summary(today)
+        hourly_dist = db.get_hourly_distribution(today)
+        
+        # Recent snapshots
+        recent_snapshots = snapshot_mgr.get_recent_snapshots(10)
+        
+        # Database stats
+        db_stats = db.get_database_stats()
+        
+        # Zones
+        zones = db.get_zones()
+        
+        return jsonify({
+            'daily_summary': daily_summary,
+            'hourly_distribution': hourly_dist,
+            'recent_snapshots': recent_snapshots,
+            'database_stats': db_stats,
+            'zones': zones,
+            'snapshot_count': snapshot_mgr.get_snapshot_count()
+        })
+    except Exception as e:
+        logger.error(f"Error getting dashboard summary: {e}")
         return jsonify({'error': str(e)}), 500
 
 
