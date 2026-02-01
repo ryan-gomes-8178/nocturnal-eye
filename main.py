@@ -149,23 +149,24 @@ class NocturnalEye:
         signal.signal(signal.SIGINT, self.signal_handler)
         signal.signal(signal.SIGTERM, self.signal_handler)
         
+        # Connect to stream
+        if not self.stream_consumer.connect():
+            logger.error("Failed to connect to stream. Exiting.")
+            self.shutdown()
+            return
+        
+        logger.info("✓ Connected to video stream")
+        
+        # Get frame size for heatmap generation
+        frame_size = self.stream_consumer.get_frame_size()
+        logger.info(f"Frame size: {frame_size[0]}x{frame_size[1]}")
+        
+        # Main processing loop
+        frame_count = 0
+        last_stats_time = datetime.now()
+        batch_events = []
+        
         try:
-            # Connect to stream
-            if not self.stream_consumer.connect():
-                logger.error("Failed to connect to stream. Exiting.")
-                return
-            
-            logger.info("✓ Connected to video stream")
-            
-            # Get frame size for heatmap generation
-            frame_size = self.stream_consumer.get_frame_size()
-            logger.info(f"Frame size: {frame_size[0]}x{frame_size[1]}")
-            
-            # Main processing loop
-            frame_count = 0
-            last_stats_time = datetime.now()
-            batch_events = []
-            
             for frame in self.stream_consumer.get_frames():
                 if not self.running:
                     break
@@ -203,7 +204,7 @@ class NocturnalEye:
                 if (current_time - last_stats_time).seconds >= 300:  # Every 5 minutes
                     self._log_statistics()
                     last_stats_time = current_time
-                
+        
         except KeyboardInterrupt:
             logger.info("\n⏸️  Interrupted by user")
         except Exception as e:
