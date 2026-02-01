@@ -1,0 +1,22 @@
+[Unit]
+Description=Nocturnal Eye - Gecko Activity Tracking System
+After=network.target terrariumpi.service
+Wants=terrariumpi.service
+
+[Service]
+Type=simple
+User=honestliepi
+Group=honestliepi
+WorkingDirectory=/home/honestliepi/Desktop/nocturnal-eye
+Environment="PATH=/home/honestliepi/Desktop/nocturnal-eye/venv/bin"
+ExecStart=/home/honestliepi/Desktop/nocturnal-eye/venv/bin/python main.py
+Restart=always
+RestartSec=10
+Nice=10
+
+# Logging
+StandardOutput=append:/home/honestliepi/Desktop/nocturnal-eye/logs/service.log
+StandardError=append:/home/honestliepi/Desktop/nocturnal-eye/logs/service_error.log
+
+[Install]
+WantedBy=multi-user.target

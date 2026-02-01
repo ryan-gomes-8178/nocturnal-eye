@@ -1,0 +1,21 @@
+[Unit]
+Description=Nocturnal Eye API Server
+After=network.target nocturnal-eye.service
+Wants=nocturnal-eye.service
+
+[Service]
+Type=simple
+User=honestliepi
+Group=honestliepi
+WorkingDirectory=/home/honestliepi/Desktop/nocturnal-eye
+Environment="PATH=/home/honestliepi/Desktop/nocturnal-eye/venv/bin"
+ExecStart=/home/honestliepi/Desktop/nocturnal-eye/venv/bin/python -m src.api.app
+Restart=always
+RestartSec=10
+
+# Logging
+StandardOutput=append:/home/honestliepi/Desktop/nocturnal-eye/logs/api.log
+StandardError=append:/home/honestliepi/Desktop/nocturnal-eye/logs/api_error.log
+
+[Install]
+WantedBy=multi-user.target
