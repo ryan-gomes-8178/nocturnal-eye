@@ -617,6 +617,14 @@
                             color = zone.color;
                         }
                         
+                        // Validate color components are valid integers between 0-255
+                        const isValidColor = color.length === 3 && 
+                            color.every(c => Number.isInteger(c) && c >= 0 && c <= 255);
+                        if (!isValidColor) {
+                            console.warn(`Invalid color for zone ${zone.name}:`, zone.color, '- using default green');
+                            color = [0, 255, 0];
+                        }
+                        
                         // Draw circle outline
                         ctx.beginPath();
                         ctx.arc(scaledX, scaledY, scaledRadius, 0, 2 * Math.PI);
