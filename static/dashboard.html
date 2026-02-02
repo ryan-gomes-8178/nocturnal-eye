@@ -344,6 +344,11 @@
         async function loadDashboard() {
             try {
                 const response = await fetch('/api/dashboard/summary');
+                
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch dashboard summary: ${response.status} ${response.statusText}`);
+                }
+                
                 const data = await response.json();
 
                 // Update stats with validation
@@ -584,8 +589,10 @@
                 
                 const config = await response.json();
                 
-                if (config.url) {
+                if (config.url && config.url.trim() !== '') {
                     const video = document.getElementById('liveStream');
+                    // Clear any existing sources before appending new one
+                    video.innerHTML = '';
                     const source = document.createElement('source');
                     source.src = config.url;
                     source.type = 'application/x-mpegURL';
@@ -622,6 +629,11 @@
         async function initZonesOverlay() {
             try {
                 const response = await fetch('/api/zones');
+                
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch zones: ${response.status} ${response.statusText}`);
+                }
+                
                 const data = await response.json();
                 const zones = data.zones || [];
                 
