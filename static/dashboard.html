@@ -293,20 +293,34 @@
                            controls>
                         Your browser does not support the video tag.
                     </video>
+                    <div id="streamError" style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); color: #ff6b6b; display: flex; align-items: center; justify-content: center; text-align: center; padding: 20px; flex-direction: column;">
+                        <div style="font-size: 48px; margin-bottom: 10px;">⚠️</div>
+                        <div id="streamErrorMessage" style="font-size: 18px; font-weight: bold;"></div>
+                    </div>
                     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
                     <script>
                         (async function () {
+                            const streamError = document.getElementById('streamError');
+                            const streamErrorMessage = document.getElementById('streamErrorMessage');
+                            
+                            function showError(message) {
+                                streamErrorMessage.textContent = message;
+                                streamError.style.display = 'flex';
+                                console.error('Stream error:', message);
+                            }
+                            
                             try {
                                 // Fetch stream URL from API
                                 const response = await fetch('/api/config/stream');
                                 if (!response.ok) {
-                                    throw new Error('Failed to fetch stream configuration');
+                                    showError('Failed to fetch stream configuration. Please check API connection.');
+                                    return;
                                 }
                                 const streamConfig = await response.json();
                                 const hlsSource = streamConfig.url;
                                 
                                 if (!hlsSource) {
-                                    console.error('No stream URL configured');
+                                    showError('No stream URL configured. Please configure stream URL in config.yaml.');
                                     return;
                                 }
                                 
@@ -323,11 +337,19 @@
                                             });
                                         }
                                     });
+                                    hls.on(Hls.Events.ERROR, function (event, data) {
+                                        if (data.fatal) {
+                                            showError('Stream playback error. Please check stream URL and connection.');
+                                        }
+                                    });
                                 } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
                                     video.src = hlsSource;
+                                    video.onerror = function() {
+                                        showError('Stream playback error. Please check stream URL and connection.');
+                                    };
                                 }
                             } catch (error) {
-                                console.error('Error initializing live stream:', error);
+                                showError('Error initializing live stream: ' + error.message);
                             }
                         })();
                     </script>
