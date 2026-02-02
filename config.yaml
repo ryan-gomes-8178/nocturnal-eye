@@ -3,12 +3,11 @@
 
 # Stream Source
 stream:
-  # URL to HLS stream from TerrariumPI
-  # Format: http://localhost:8090/webcam/{camera_id}/stream.m3u8
-  url: "http://localhost:8090/webcam/1/stream.m3u8"
+  # URL to HLS stream from TerrariumPI via nocturnal-eye bypass endpoint
+  url: "http://localhost:8090/nocturnal-eye/stream.m3u8"
   
   # Fallback to test video file if stream unavailable
-  fallback_enabled: true
+  fallback_enabled: false
   fallback_path: "tests/sample_video.mp4"
   
   # Frame processing rate (process every N frames)
@@ -24,16 +23,16 @@ stream:
 # Motion Detection
 motion:
   # Sensitivity (lower = more sensitive, range: 1-100)
-  sensitivity: 16
+  sensitivity: 55
   
   # Minimum area in pixels to consider as gecko
-  min_area: 1000
+  min_area: 1200
   
   # Maximum area in pixels to consider as gecko
   max_area: 8000
   
   # Number of frames to use for background history
-  history_frames: 500
+  history_frames: 1000
   
   # Detect and remove shadows
   detect_shadows: true
@@ -56,25 +55,25 @@ tracking:
   max_tracking_distance: 100
   
   # Minimum consecutive detections to confirm object
-  min_detections: 3
+  min_detections: 10
 
 # Zones of Interest
 # Define areas in your terrarium for behavioral analysis
 zones:
   - name: "Feeding Station"
-    x: 100
-    y: 200
+    x: 1800
+    y: 280
     radius: 50
     color: [0, 255, 0]  # Green
     
   - name: "Basking Spot"
-    x: 500
+    x: 1420
     y: 100
     radius: 80
     color: [255, 165, 0]  # Orange
     
   - name: "Hide Box"
-    x: 300
+    x: 200
     y: 400
     radius: 70
     color: [0, 0, 255]  # Blue
@@ -82,7 +81,7 @@ zones:
 # Schedule
 schedule:
   # Only process during these hours (24-hour format)
-  enabled: true
+  enabled: false
   start_time: "20:00"  # 8 PM
   end_time: "08:00"    # 8 AM
   
@@ -105,7 +104,23 @@ api:
   host: "0.0.0.0"
   port: 5001
   cors_enabled: true
+  
+  # CORS allowed origins (list of URLs allowed to access the API)
+  allowed_cors_origins:
+    - "http://localhost:5001"
+  
   debug: false
+
+# Snapshot Capture
+snapshots:
+  # Save annotated snapshot every N seconds
+  save_interval: 30
+  
+  # Maximum number of snapshots to keep
+  max_snapshots: 200
+  
+  # JPEG quality (1-100)
+  quality: 85
 
 # Heatmap Generation
 heatmap:
