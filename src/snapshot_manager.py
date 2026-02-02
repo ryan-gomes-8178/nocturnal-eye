@@ -231,7 +231,20 @@ class SnapshotManager:
                     logger.error(f"Error removing snapshot: {e}")
     
     def _snapshot_to_dict(self, snapshot: Path) -> Dict:
-        """Convert snapshot file to response dict with metadata"""
+        """
+        Convert a snapshot file into a dictionary suitable for API responses.
+
+        Args:
+            snapshot: Path to the JPEG snapshot file.
+
+        Returns:
+            Dict containing:
+                - 'filename': The snapshot file name.
+                - 'path': Public URL path to the snapshot file.
+                - 'timestamp': ISO 8601 string of the file's modification time.
+                - 'metadata': Dictionary loaded from the corresponding JSON
+                  metadata file if it exists; otherwise an empty dictionary.
+        """
         metadata_file = snapshot.with_suffix('.jpg.json')
         metadata = {}
 
