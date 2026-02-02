@@ -244,7 +244,14 @@ def cleanup_database():
 def get_recent_snapshots():
     """Get recent detection snapshots"""
     try:
-        limit = int(request.args.get('limit', 20))
+        limit_param = request.args.get('limit', '20')
+        try:
+            limit = int(limit_param)
+        except (TypeError, ValueError):
+            return jsonify({'error': 'Invalid limit parameter. It must be an integer.'}), 400
+
+        if limit <= 0:
+            return jsonify({'error': 'Invalid limit parameter. It must be a positive integer.'}), 400
         snapshots = snapshot_mgr.get_recent_snapshots(limit)
         
         return jsonify({

@@ -229,8 +229,8 @@ class SnapshotManager:
                 try:
                     with open(metadata_file, 'r') as f:
                         metadata = json.load(f)
-                except:
-                    pass
+                except Exception as e:
+                    logger.warning(f"Failed to load metadata from {metadata_file}: {e}")
             
             result.append({
                 'filename': snapshot.name,
