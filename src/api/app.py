@@ -379,6 +379,9 @@ def get_stream_config():
             host = parsed_host.hostname if parsed_host and parsed_host.hostname else 'localhost'
             public_port = stream_config.get('public_port', 8090)
             public_path = stream_config.get('public_path', '/nocturnal-eye/stream.m3u8')
+            # Wrap IPv6 addresses in brackets for URL formatting
+            if ':' in host and not host.startswith('['):
+                host = f'[{host}]'
             stream_url = f"{proto}://{host}:{public_port}{public_path}"
         else:
             parsed = urlparse(stream_url)
@@ -390,6 +393,9 @@ def get_stream_config():
                 host = forwarded_host or parsed.hostname
                 # Preserve the original stream port if present, otherwise fall back to configured public_port
                 port = parsed.port or stream_config.get('public_port')
+                # Wrap IPv6 addresses in brackets for URL formatting
+                if host and ':' in host and not host.startswith('['):
+                    host = f'[{host}]'
                 netloc = f"{host}:{port}" if port else host
                 # Preserve the original scheme for non-HTTP(S) URLs; only override with proto for HTTP/HTTPS
                 scheme = parsed.scheme
