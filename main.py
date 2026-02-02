@@ -195,10 +195,19 @@ class NocturnalEye:
                     self.snapshot_manager.save_snapshot(frame, motion_events, self.zone_analyzer.zones if self.zone_analyzer else None)
                     
                     # Trigger Telegram notification to TerrariumPI
-                    if tracked_objects:
-                        primary_object = tracked_objects[0]
-                        zone_name = primary_object.get('zone') if primary_object else None
-                        confidence = primary_object.get('confidence', 0) if primary_object else 0
+                    if motion_events:
+                        # Use the first motion event for notification
+                        primary_event = motion_events[0]
+                        confidence = primary_event.confidence
+                        
+                        # Check which zone the motion is in
+                        zone_name = None
+                        if self.zone_analyzer and hasattr(primary_event, 'centroid'):
+                            for zone in self.zone_analyzer.zones:
+                                if self.zone_analyzer.point_in_zone(primary_event.centroid, zone):
+                                    zone_name = zone['name']
+                                    break
+                        
                         notify_gecko_detection(confidence=confidence, zone=zone_name)
                     
                     # Add to batch for database insertion

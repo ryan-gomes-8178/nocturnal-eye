@@ -283,6 +283,48 @@ def get_recent_snapshots():
         return jsonify({'error': str(e)}), 500
 
 
+@app.route('/api/snapshots/range', methods=['GET'])
+def get_snapshots_range():
+    """Get detection snapshots within a time range"""
+    try:
+        start_str = request.args.get('start')
+        end_str = request.args.get('end')
+        if not start_str or not end_str:
+            return jsonify({'error': 'Missing start or end parameter'}), 400
+
+        limit_param = request.args.get('limit', '50')
+        offset_param = request.args.get('offset', '0')
+        try:
+            limit = int(limit_param)
+            offset = int(offset_param)
+        except (TypeError, ValueError):
+            return jsonify({'error': 'Invalid limit/offset parameter. Limit and offset must be integers.'}), 400
+
+        if limit <= 0 or offset < 0:
+            return jsonify({'error': 'Invalid limit/offset parameter. Limit must be greater than 0 and offset must be non-negative.'}), 400
+
+        limit = min(limit, 500)
+        start_date = datetime.fromisoformat(start_str)
+        end_date = datetime.fromisoformat(end_str)
+
+        data = snapshot_mgr.get_snapshots_in_range(start_date, end_date, offset=offset, limit=limit)
+
+        return jsonify({
+            'total': data['total'],
+            'count': len(data['snapshots']),
+            'offset': offset,
+            'limit': limit,
+            'start': start_str,
+            'end': end_str,
+            'snapshots': data['snapshots']
+        })
+    except ValueError as e:
+        return jsonify({'error': f'Invalid date format: {e}'}), 400
+    except Exception as e:
+        logger.error(f"Error getting snapshot range: {e}")
+        return jsonify({'error': str(e)}), 500
+
+
 @app.route('/api/snapshots/count', methods=['GET'])
 def get_snapshot_count():
     """Get total number of snapshots"""

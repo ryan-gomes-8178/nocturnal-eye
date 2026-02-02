@@ -230,35 +230,87 @@ class SnapshotManager:
                 except Exception as e:
                     logger.error(f"Error removing snapshot: {e}")
     
+    def _normalize_offset(self, offset: int) -> int:
+        """Normalize offset to ensure it's not negative"""
+        return max(0, offset)
+
+    def _snapshot_to_dict(self, snapshot: Path) -> Dict:
+        """
+        Convert a snapshot file into a dictionary suitable for API responses.
+
+        Args:
+            snapshot: Path to the JPEG snapshot file.
+
+        Returns:
+            Dict containing:
+                - 'filename': The snapshot file name.
+                - 'path': Public URL path to the snapshot file.
+                - 'timestamp': ISO 8601 string of the file's modification time.
+                - 'metadata': Dictionary loaded from the corresponding JSON
+                  metadata file if it exists; otherwise an empty dictionary.
+        """
+        metadata_file = snapshot.with_suffix('.jpg.json')
+        metadata = {}
+
+        if metadata_file.exists():
+            try:
+                with open(metadata_file, 'r') as f:
+                    metadata = json.load(f)
+            except Exception as e:
+                logger.warning(f"Failed to load metadata from {metadata_file}: {e}")
+
+        return {
+            'filename': snapshot.name,
+            'path': f'/static/snapshots/{snapshot.name}',
+            'timestamp': datetime.fromtimestamp(snapshot.stat().st_mtime).isoformat(),
+            'metadata': metadata,
+        }
+
     def get_recent_snapshots(self, limit: int = 20) -> List[Dict]:
         """Get list of recent snapshots with metadata"""
+        return self.get_snapshots_paginated(offset=0, limit=limit)
+
+    def get_snapshots_paginated(self, offset: int = 0, limit: int = 20) -> List[Dict]:
+        """Get snapshots with pagination"""
         snapshots = sorted(
             self.snapshot_dir.glob('detection_*.jpg'),
             key=lambda x: x.stat().st_mtime,
             reverse=True
-        )[:limit]
-        
-        result = []
-        for snapshot in snapshots:
-            metadata_file = snapshot.with_suffix('.jpg.json')
-            metadata = {}
-            
-            if metadata_file.exists():
-                try:
-                    with open(metadata_file, 'r') as f:
-                        metadata = json.load(f)
-                except Exception as e:
-                    logger.warning(f"Failed to load metadata from {metadata_file}: {e}")
-            
-            result.append({
-                'filename': snapshot.name,
-                'path': f'/static/snapshots/{snapshot.name}',
-                'timestamp': datetime.fromtimestamp(snapshot.stat().st_mtime).isoformat(),
-                'metadata': metadata
-            })
-        
-        return result
-    
+        )
+
+        offset = self._normalize_offset(offset)
+
+        paged = snapshots[offset:offset + limit]
+        return [self._snapshot_to_dict(snap) for snap in paged]
+
+    def get_snapshots_in_range(
+        self,
+        start: datetime,
+        end: datetime,
+        offset: int = 0,
+        limit: int = 200,
+    ) -> Dict:
+        """Get snapshots within a time range (inclusive) with pagination"""
+        snapshots = sorted(
+            self.snapshot_dir.glob('detection_*.jpg'),
+            key=lambda x: x.stat().st_mtime,
+            reverse=True,
+        )
+
+        filtered = [
+            snap for snap in snapshots
+            if start <= datetime.fromtimestamp(snap.stat().st_mtime) <= end
+        ]
+
+        offset = self._normalize_offset(offset)
+
+        paged = filtered[offset:offset + limit]
+
+        return {
+            'total': len(filtered),
+            'snapshots': [self._snapshot_to_dict(snap) for snap in paged],
+        }
+
     def get_snapshot_count(self) -> int:
         """Get total number of snapshots"""
         return len(list(self.snapshot_dir.glob('detection_*.jpg')))

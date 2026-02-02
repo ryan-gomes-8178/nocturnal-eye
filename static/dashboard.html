@@ -103,6 +103,38 @@
             gap: 15px;
         }
 
+        .snapshot-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .snapshot-controls .control-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .snapshot-controls input[type='datetime-local'] {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: #e0e0e0;
+            padding: 6px 8px;
+            border-radius: 5px;
+        }
+
+        .snapshot-controls label {
+            font-size: 0.85em;
+            color: #8be9fd;
+        }
+
+        .snapshot-window {
+            font-size: 0.9em;
+            color: #f1fa8c;
+        }
+
         .snapshot {
             position: relative;
             border-radius: 8px;
@@ -400,9 +432,22 @@
 
         <div class="grid">
             <div class="card" style="grid-column: 1 / -1;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                     <h2>📸 Recent Detections</h2>
                     <button class="refresh-btn" id="refreshBtn">🔄 Refresh</button>
+                </div>
+                <div class="snapshot-controls">
+                    <div class="control-row">
+                        <button class="refresh-btn" id="snapPrev">⬅ Newer</button>
+                        <button class="refresh-btn" id="snapNext">Older ➡</button>
+                        <span class="snapshot-window" id="snapshotWindow">Loading...</span>
+                    </div>
+                    <div class="control-row">
+                        <label>From <input type="datetime-local" id="rangeStart" /></label>
+                        <label>To <input type="datetime-local" id="rangeEnd" /></label>
+                        <button class="refresh-btn" id="rangeApply">Apply Range</button>
+                        <button class="refresh-btn" id="rangeClear">Clear Range</button>
+                    </div>
                 </div>
                 <div class="snapshot-grid" id="snapshotGrid">
                     <div class="loading">Loading snapshots...</div>
@@ -435,6 +480,10 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script>
         let hourlyChartInstance = null;
+        let snapshotLimit = 10;
+        let snapshotOffset = 0;
+        let snapshotTotal = 0;
+        let snapshotMode = 'recent';
 
         async function loadDashboard() {
             try {
@@ -471,6 +520,59 @@
                 document.getElementById('systemStatus').style.color = '#ff5555';
                 showError('Failed to load dashboard data');
             }
+        }
+
+        async function loadSnapshotPage() {
+            const grid = document.getElementById('snapshotGrid');
+            grid.innerHTML = '<div class="loading">Loading snapshots...</div>';
+
+            if (snapshotMode === 'range') {
+                const startInput = document.getElementById('rangeStart').value;
+                const endInput = document.getElementById('rangeEnd').value;
+
+                if (!startInput || !endInput) {
+                    grid.innerHTML = '<div class="loading">Select a valid time range</div>';
+                    updateSnapshotWindowText();
+                    return;
+                }
+
+                const rangeResponse = await fetch(
+                    `/api/snapshots/range?start=${encodeURIComponent(startInput)}&end=${encodeURIComponent(endInput)}&limit=${snapshotLimit}&offset=${snapshotOffset}`
+                );
+                const rangeData = await rangeResponse.json();
+
+                snapshotTotal = rangeData.total || 0;
+                loadSnapshots(rangeData.snapshots || []);
+                updateSnapshotWindowText();
+                return;
+            }
+
+            const [listResponse, countResponse] = await Promise.all([
+                fetch(`/api/snapshots/recent?limit=${snapshotLimit}&offset=${snapshotOffset}`),
+                fetch('/api/snapshots/count')
+            ]);
+
+            const listData = await listResponse.json();
+            const countData = await countResponse.json();
+
+            snapshotTotal = countData.count || 0;
+            loadSnapshots(listData.snapshots || []);
+            updateSnapshotWindowText();
+        }
+
+        function updateSnapshotWindowText() {
+            const windowEl = document.getElementById('snapshotWindow');
+            if (!windowEl) return;
+
+            if (snapshotTotal === 0) {
+                windowEl.textContent = 'No snapshots';
+                return;
+            }
+
+            const start = snapshotOffset + 1;
+            const end = Math.min(snapshotOffset + snapshotLimit, snapshotTotal);
+            const label = snapshotMode === 'range' ? 'Range' : 'All';
+            windowEl.textContent = `${label}: ${start}-${end} of ${snapshotTotal}`;
         }
 
         function loadSnapshots(snapshots) {
@@ -674,6 +776,33 @@
 
             setTimeout(() => errorDiv.remove(), 5000);
         }
+
+        // Snapshot navigation controls
+        document.getElementById('snapPrev').addEventListener('click', async () => {
+            snapshotOffset = Math.max(0, snapshotOffset - snapshotLimit);
+            await loadSnapshotPage();
+        });
+
+        document.getElementById('snapNext').addEventListener('click', async () => {
+            if (snapshotOffset + snapshotLimit < snapshotTotal) {
+                snapshotOffset += snapshotLimit;
+                await loadSnapshotPage();
+            }
+        });
+
+        document.getElementById('rangeApply').addEventListener('click', async () => {
+            snapshotMode = 'range';
+            snapshotOffset = 0;
+            await loadSnapshotPage();
+        });
+
+        document.getElementById('rangeClear').addEventListener('click', async () => {
+            snapshotMode = 'recent';
+            snapshotOffset = 0;
+            document.getElementById('rangeStart').value = '';
+            document.getElementById('rangeEnd').value = '';
+            await loadSnapshotPage();
+        });
 
         // Load dashboard on page load
         loadDashboard();
