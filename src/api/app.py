@@ -191,8 +191,7 @@ def get_stream_config():
     try:
         stream_config = config.get('stream', {})
         return jsonify({
-            'url': stream_config.get('url', ''),
-            'fallback_enabled': stream_config.get('fallback_enabled', False)
+            'url': stream_config.get('url', '')
         })
     except Exception as e:
         logger.error(f"Error getting stream config: {e}")
