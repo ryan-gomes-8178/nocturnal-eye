@@ -230,6 +230,10 @@ class SnapshotManager:
                 except Exception as e:
                     logger.error(f"Error removing snapshot: {e}")
     
+    def _normalize_offset(self, offset: int) -> int:
+        """Normalize offset to ensure it's not negative"""
+        return max(0, offset)
+
     def _snapshot_to_dict(self, snapshot: Path) -> Dict:
         """
         Convert a snapshot file into a dictionary suitable for API responses.
@@ -274,8 +278,7 @@ class SnapshotManager:
             reverse=True
         )
 
-        if offset < 0:
-            offset = 0
+        offset = self._normalize_offset(offset)
 
         paged = snapshots[offset:offset + limit]
         return [self._snapshot_to_dict(snap) for snap in paged]
@@ -299,8 +302,7 @@ class SnapshotManager:
             if start <= datetime.fromtimestamp(snap.stat().st_mtime) <= end
         ]
 
-        if offset < 0:
-            offset = 0
+        offset = self._normalize_offset(offset)
 
         paged = filtered[offset:offset + limit]
 
