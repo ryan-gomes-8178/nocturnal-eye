@@ -577,6 +577,11 @@
         async function initLiveStream() {
             try {
                 const response = await fetch('/api/config/stream');
+                
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch stream config: ${response.status} ${response.statusText}`);
+                }
+                
                 const config = await response.json();
                 
                 if (config.url) {
@@ -587,10 +592,20 @@
                     video.appendChild(source);
                     video.load();
                 } else {
-                    console.error('No stream URL configured');
+                    throw new Error('No stream URL configured in settings');
                 }
             } catch (error) {
                 console.error('Error loading stream config:', error);
+                
+                // Display user-friendly error message in video element area
+                const video = document.getElementById('liveStream');
+                const errorDiv = document.createElement('div');
+                errorDiv.style.cssText = 'position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #ff5555; text-align: center; padding: 20px; background: rgba(0,0,0,0.8); border-radius: 8px; max-width: 80%;';
+                errorDiv.innerHTML = `
+                    <div style="font-size: 1.2em; margin-bottom: 10px;">⚠️ Stream Unavailable</div>
+                    <div style="font-size: 0.9em;">Unable to load stream configuration. Please check your settings.</div>
+                `;
+                video.parentElement.appendChild(errorDiv);
             }
         }
 
