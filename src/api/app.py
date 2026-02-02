@@ -359,8 +359,30 @@ def get_stream_config():
     """Get stream configuration"""
     try:
         stream_config = config.get('stream', {})
+        stream_url = (stream_config.get('url', '') or '').strip()
+        proto = request.headers.get('X-Forwarded-Proto', request.scheme)
+
+        if not stream_url or stream_url.startswith('/dev/') or (
+            not stream_url.startswith('rtsp://') and not stream_url.startswith('http')
+        ):
+            host_header = request.headers.get('X-Forwarded-Host') or request.host
+            host = host_header.split(':')[0] if host_header else 'localhost'
+            public_port = stream_config.get('public_port', 8090)
+            public_path = stream_config.get('public_path', '/nocturnal-eye/stream.m3u8')
+            stream_url = f"{proto}://{host}:{public_port}{public_path}"
+        else:
+            from urllib.parse import urlparse, urlunparse
+
+            parsed = urlparse(stream_url)
+            if parsed.hostname in {'localhost', '127.0.0.1', '0.0.0.0'}:
+                host_header = request.headers.get('X-Forwarded-Host') or request.host
+                host = host_header or parsed.hostname
+                if ':' not in host and parsed.port:
+                    host = f"{host}:{parsed.port}"
+                stream_url = urlunparse((proto, host, parsed.path, '', parsed.query, ''))
+
         return jsonify({
-            'url': stream_config.get('url', ''),
+            'url': stream_url,
             'fallback_enabled': stream_config.get('fallback_enabled', False)
         })
     except Exception as e:
