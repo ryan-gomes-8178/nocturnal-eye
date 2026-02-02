@@ -17,6 +17,7 @@ Added a complete web dashboard for viewing gecko detection snapshots and activit
 - **GET /** - Serves the web dashboard HTML
 - **GET /api/snapshots/recent** - Returns list of recent detection snapshots
 - **GET /api/snapshots/count** - Returns total snapshot count
+- **GET /api/config/stream** - Returns stream configuration (URL and fallback settings)
 - **GET /api/dashboard/summary** - Comprehensive dashboard data including:
   - Daily activity summary
   - Hourly distribution (24-hour breakdown)

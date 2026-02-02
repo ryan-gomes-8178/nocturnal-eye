@@ -439,6 +439,11 @@
         async function loadDashboard() {
             try {
                 const response = await fetch('/api/dashboard/summary');
+                
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch dashboard summary: ${response.status} ${response.statusText}`);
+                }
+                
                 const data = await response.json();
 
                 // Update stats with validation
@@ -687,10 +692,63 @@
             if (e.key === 'Escape') closeModal();
         });
 
+        // Initialize live stream with dynamic URL
+        async function initLiveStream() {
+            try {
+                const response = await fetch('/api/config/stream');
+                
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch stream config: ${response.status} ${response.statusText}`);
+                }
+                
+                const config = await response.json();
+                
+                if (typeof config.url === 'string' && config.url.trim() !== '') {
+                    const video = document.getElementById('liveStream');
+                    // Clear any existing sources before appending new one
+                    video.innerHTML = '';
+                    const source = document.createElement('source');
+                    source.src = config.url;
+                    source.type = 'application/x-mpegURL';
+                    video.appendChild(source);
+                    video.load();
+                } else {
+                    throw new Error('No stream URL configured in settings');
+                }
+            } catch (error) {
+                console.error('Error loading stream config:', error);
+                
+                // Display user-friendly error message in video element area
+                const video = document.getElementById('liveStream');
+                const errorDiv = document.createElement('div');
+                errorDiv.style.cssText = 'position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #ff5555; text-align: center; padding: 20px; background: rgba(0,0,0,0.8); border-radius: 8px; max-width: 80%;';
+                errorDiv.innerHTML = `
+                    <div style="font-size: 1.2em; margin-bottom: 10px;">⚠️ Stream Unavailable</div>
+                    <div style="font-size: 0.9em;">Unable to load stream configuration. Please check your settings.</div>
+                `;
+                const container = video.parentElement;
+                if (container) {
+                    // Ensure container has relative positioning for absolute child
+                    if (window.getComputedStyle(container).position === 'static') {
+                        container.style.position = 'relative';
+                    }
+                    container.appendChild(errorDiv);
+                }
+            }
+        }
+
+        // Initialize stream on page load
+        initLiveStream();
+
         // Initialize zones overlay on live stream
         async function initZonesOverlay() {
             try {
                 const response = await fetch('/api/zones');
+                
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch zones: ${response.status} ${response.statusText}`);
+                }
+                
                 const data = await response.json();
                 const zones = data.zones || [];
                 
