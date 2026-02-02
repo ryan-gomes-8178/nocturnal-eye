@@ -360,7 +360,11 @@ def get_stream_config():
     try:
         stream_config = config.get('stream', {})
         stream_url = (stream_config.get('url', '') or '').strip()
-        proto = request.headers.get('X-Forwarded-Proto', request.scheme)
+        proto_header = request.headers.get('X-Forwarded-Proto')
+        if proto_header:
+            proto = proto_header.split(',')[0].strip() or request.scheme
+        else:
+            proto = request.scheme
 
         if not stream_url or stream_url.startswith('/dev/') or (
             not stream_url.startswith('rtsp://') and not stream_url.startswith('http')
