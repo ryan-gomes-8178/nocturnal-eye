@@ -363,8 +363,10 @@ def get_stream_config():
         stream_config = config.get('stream', {})
         stream_url = (stream_config.get('url', '') or '').strip()
         proto_header = request.headers.get('X-Forwarded-Proto')
+        allowed_protos = {'http', 'https'}
         if proto_header:
-            proto = proto_header.split(',')[0].strip() or request.scheme
+            raw_proto = proto_header.split(',')[0].strip().lower()
+            proto = raw_proto if raw_proto in allowed_protos else request.scheme
         else:
             proto = request.scheme
 
