@@ -11,6 +11,7 @@ import logging
 import yaml
 import numpy as np
 import cv2
+import time
 from pathlib import Path
 from datetime import datetime, timedelta
 
@@ -22,9 +23,10 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 from src.database import Database
-from src.motion_detector import MotionDetector
+from src.motion_detector import MotionDetector, MotionEvent
 from src.tracker import ObjectTracker, ZoneAnalyzer
 from src.visualizer import HeatmapGenerator
+from src.snapshot_manager import SnapshotManager
 
 
 def test_database():
@@ -269,6 +271,135 @@ def test_zone_analyzer():
     return analyzer
 
 
+def test_snapshot_manager():
+    """Test snapshot manager functionality"""
+    logger.info("\n" + "="*60)
+    logger.info("Testing Snapshot Manager...")
+    logger.info("="*60)
+    
+    # Configuration for testing
+    config = {
+        'snapshots': {
+            'save_interval': 1,  # Short interval for testing
+            'max_snapshots': 5,  # Small number for testing cleanup
+            'quality': 85
+        }
+    }
+    
+    # Initialize snapshot manager
+    manager = SnapshotManager(config)
+    logger.info(f"✓ SnapshotManager initialized: interval={manager.save_interval}s, max={manager.max_snapshots}")
+    
+    # Create test frame
+    logger.info("✓ Creating test frame...")
+    frame = np.zeros((480, 640, 3), dtype=np.uint8)
+    cv2.circle(frame, (320, 240), 50, (255, 255, 255), -1)
+    
+    # Create test motion events
+    logger.info("✓ Creating test motion events...")
+    timestamp = datetime.now()
+    
+    motion_events = [
+        MotionEvent(
+            timestamp=timestamp,
+            centroid=(320, 240),
+            area=2500,
+            bounding_box=(270, 190, 100, 100),
+            confidence=0.9
+        ),
+        MotionEvent(
+            timestamp=timestamp,
+            centroid=(150, 120),
+            area=1800,
+            bounding_box=(120, 90, 60, 60),
+            confidence=0.75
+        )
+    ]
+    
+    # Test zones for annotation
+    zones = [
+        {'name': 'Test Zone', 'x': 320, 'y': 240, 'radius': 80, 'color': '[0, 255, 0]'}
+    ]
+    
+    # Test snapshot capture
+    logger.info("✓ Testing snapshot capture...")
+    snapshot_path = manager.save_snapshot(frame, motion_events, zones)
+    
+    if snapshot_path:
+        logger.info(f"  Snapshot saved to: {snapshot_path}")
+        assert snapshot_path.exists(), "Snapshot file should exist"
+        
+        # Check metadata file
+        metadata_path = snapshot_path.with_suffix('.jpg.json')
+        assert metadata_path.exists(), "Metadata file should exist"
+        logger.info(f"  Metadata saved to: {metadata_path}")
+    else:
+        logger.warning("  Snapshot not saved (interval not met or no motion)")
+    
+    # Test that second snapshot is blocked by interval
+    logger.info("✓ Testing save interval...")
+    snapshot_path2 = manager.save_snapshot(frame, motion_events, zones)
+    if snapshot_path2 is None:
+        logger.info("  ✓ Save interval correctly prevents duplicate snapshots")
+    
+    # Wait and test another snapshot
+    time.sleep(1.1)
+    logger.info("✓ Testing snapshot after interval...")
+    snapshot_path3 = manager.save_snapshot(frame, motion_events, zones)
+    if snapshot_path3:
+        logger.info(f"  ✓ Snapshot saved after interval: {snapshot_path3}")
+    
+    # Test get_recent_snapshots
+    logger.info("✓ Testing get_recent_snapshots...")
+    recent = manager.get_recent_snapshots(limit=10)
+    logger.info(f"  Found {len(recent)} recent snapshots")
+    for snap in recent:
+        logger.info(f"    - {snap['filename']}: {snap['metadata'].get('detection_count', 0)} detections")
+    
+    # Test snapshot count
+    count = manager.get_snapshot_count()
+    logger.info(f"✓ Total snapshots: {count}")
+    
+    # Test cleanup mechanism by creating more snapshots than max
+    logger.info("✓ Testing cleanup mechanism...")
+    logger.info(f"  Creating {manager.max_snapshots + 2} snapshots to test cleanup...")
+    
+    for i in range(manager.max_snapshots + 2):
+        time.sleep(1.1)  # Wait for interval
+        manager.save_snapshot(frame, motion_events, zones)
+    
+    final_count = manager.get_snapshot_count()
+    logger.info(f"  Final count: {final_count} (max: {manager.max_snapshots})")
+    assert final_count <= manager.max_snapshots, f"Cleanup should limit to {manager.max_snapshots} snapshots"
+    logger.info(f"  ✓ Cleanup working correctly")
+    
+    # Test annotation rendering
+    logger.info("✓ Testing annotation rendering...")
+    annotated = manager._annotate_frame(frame.copy(), motion_events, zones)
+    assert annotated is not None, "Annotated frame should not be None"
+    assert annotated.shape == frame.shape, "Annotated frame should have same shape as original"
+    logger.info("  ✓ Annotations rendered successfully")
+    
+    # Test metadata creation
+    logger.info("✓ Testing metadata creation...")
+    metadata = manager._create_metadata(timestamp, motion_events, "test.jpg")
+    assert metadata['filename'] == "test.jpg", "Filename should match"
+    assert metadata['detection_count'] == len(motion_events), "Detection count should match"
+    assert len(metadata['detections']) == len(motion_events), "Number of detections should match"
+    logger.info(f"  ✓ Metadata created: {metadata['detection_count']} detections")
+    
+    # Test empty motion events
+    logger.info("✓ Testing with empty motion events...")
+    time.sleep(1.1)
+    snapshot_empty = manager.save_snapshot(frame, [], zones)
+    assert snapshot_empty is None, "Should not save snapshot with no motion events"
+    logger.info("  ✓ Correctly skips saving when no motion detected")
+    
+    logger.info("✓ Snapshot Manager tests completed successfully")
+    
+    return manager
+
+
 def main():
     """Run all tests"""
     logger.info("\n")
@@ -282,6 +413,7 @@ def main():
         tracker = test_tracker()
         generator = test_heatmap_generator()
         analyzer = test_zone_analyzer()
+        snapshot_mgr = test_snapshot_manager()
         
         # Summary
         logger.info("\n" + "="*60)
@@ -294,6 +426,7 @@ def main():
         logger.info("  ✓ Object Tracker: OK")
         logger.info("  ✓ Heatmap Generator: OK")
         logger.info("  ✓ Zone Analyzer: OK")
+        logger.info("  ✓ Snapshot Manager: OK")
         
         logger.info("\n🚀 Next Steps:")
         logger.info("  1. Connect your camera to TerrariumPI")
