@@ -35,9 +35,11 @@ snapshot_mgr = SnapshotManager(config)
 
 def is_ipv6(host):
     """Check if host is an IPv6 address"""
+    if not host:
+        return False
     try:
         # Strip brackets if present (e.g., '[2001:db8::1]' -> '2001:db8::1')
-        host_to_check = host.strip('[]') if host else host
+        host_to_check = host.strip('[]')
         addr = ipaddress.ip_address(host_to_check)
         return isinstance(addr, ipaddress.IPv6Address)
     except ValueError:
@@ -391,8 +393,9 @@ def get_stream_config():
             host = parsed_host.hostname if parsed_host and parsed_host.hostname else 'localhost'
             public_port = stream_config.get('public_port', 8090)
             public_path = stream_config.get('public_path', '/nocturnal-eye/stream.m3u8')
-            # Wrap IPv6 addresses in brackets for URL formatting (avoid double-wrapping)
-            if is_ipv6(host) and not (host.startswith('[') and host.endswith(']')):
+            # Wrap IPv6 addresses in brackets for URL formatting
+            # Note: urlsplit().hostname already strips brackets, so no double-wrapping
+            if is_ipv6(host):
                 host = f'[{host}]'
             stream_url = f"{proto}://{host}:{public_port}{public_path}"
         else:
@@ -405,8 +408,9 @@ def get_stream_config():
                 host = forwarded_host or parsed.hostname
                 # Preserve the original stream port if present, otherwise fall back to configured public_port
                 port = parsed.port or stream_config.get('public_port')
-                # Wrap IPv6 addresses in brackets for URL formatting (avoid double-wrapping)
-                if host and is_ipv6(host) and not (host.startswith('[') and host.endswith(']')):
+                # Wrap IPv6 addresses in brackets for URL formatting
+                # Note: urlsplit().hostname already strips brackets, so no double-wrapping
+                if host and is_ipv6(host):
                     host = f'[{host}]'
                 netloc = f"{host}:{port}" if port else host
                 # Preserve the original scheme for non-HTTP(S) URLs; only override with proto for HTTP/HTTPS
