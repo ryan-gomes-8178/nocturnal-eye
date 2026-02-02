@@ -1,6 +1,12 @@
 stream:
   # URL to HLS stream from TerrariumPI via nocturnal-eye bypass endpoint
+  # Note: Use localhost here - the API will automatically translate it to the correct hostname
   url: "http://localhost:8090/nocturnal-eye/stream.m3u8"
+  
+  # Public configuration for client access
+  # These values are used when the configured URL is a device path or localhost
+  public_port: 8090
+  public_path: "/nocturnal-eye/stream.m3u8"
   
   # Fallback to test video file if stream unavailable
   fallback_enabled: false
@@ -15,10 +21,12 @@ stream:
   retry_delay: 10
 motion:
   # Sensitivity (lower = more sensitive, range: 1-100)
-  sensitivity: 55
+  # Reduced from 55 to 40 for better gecko detection
+  sensitivity: 40
   
   # Minimum area in pixels to consider as gecko
-  min_area: 1200
+  # Reduced from 1200 to 800 to catch smaller movements
+  min_area: 800
   
   # Maximum area in pixels to consider as gecko
   max_area: 8000
