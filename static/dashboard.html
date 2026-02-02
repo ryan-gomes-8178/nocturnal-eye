@@ -379,6 +379,8 @@
                                     video.onerror = () => {
                                         showError('Unable to load video stream. Please check your stream URL and network connection.');
                                     };
+                                } else {
+                                    showError('Your browser does not support HLS video playback. Please use a modern browser like Chrome, Firefox, or Safari.');
                                 }
                             } catch (error) {
                                 showError('Error initializing live stream. Please refresh the page and try again.', error.message);
