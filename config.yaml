@@ -26,7 +26,7 @@ tracking:
 zones:
 - name: Feeding Station
   x: 120
-  y: 280
+  y: 195
   radius: 50
   color:
   - 0
@@ -66,7 +66,7 @@ api:
   debug: false
 snapshots:
   save_interval: 3
-  max_snapshots: 200
+  max_snapshots: 500
   quality: 85
 heatmap:
   grid_size: 50
