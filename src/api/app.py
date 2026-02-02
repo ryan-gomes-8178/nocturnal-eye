@@ -357,6 +357,8 @@ def get_dashboard_summary():
 @app.route('/api/config/stream', methods=['GET'])
 def get_stream_config():
     """Get stream configuration"""
+    from urllib.parse import urlparse, urlunparse, urlsplit
+    
     try:
         stream_config = config.get('stream', {})
         stream_url = (stream_config.get('url', '') or '').strip()
@@ -369,7 +371,6 @@ def get_stream_config():
         if not stream_url or stream_url.startswith('/dev/') or (
             not stream_url.startswith('rtsp://') and not stream_url.startswith('http')
         ):
-            from urllib.parse import urlsplit
             host_header = request.headers.get('X-Forwarded-Host') or request.host
             # Use urlsplit with a fake scheme to safely extract hostname (handles IPv6)
             parsed_host = urlsplit(f'http://{host_header}') if host_header else None
@@ -378,8 +379,6 @@ def get_stream_config():
             public_path = stream_config.get('public_path', '/nocturnal-eye/stream.m3u8')
             stream_url = f"{proto}://{host}:{public_port}{public_path}"
         else:
-            from urllib.parse import urlparse, urlunparse, urlsplit
-
             parsed = urlparse(stream_url)
             if parsed.hostname in {'localhost', '127.0.0.1', '0.0.0.0'}:
                 host_header = request.headers.get('X-Forwarded-Host') or request.host
