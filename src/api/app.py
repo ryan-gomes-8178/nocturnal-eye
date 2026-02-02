@@ -185,6 +185,20 @@ def get_zones():
         return jsonify({'error': str(e)}), 500
 
 
+@app.route('/api/config/stream', methods=['GET'])
+def get_stream_config():
+    """Get stream configuration"""
+    try:
+        stream_config = config.get('stream', {})
+        return jsonify({
+            'url': stream_config.get('url', ''),
+            'fallback_enabled': stream_config.get('fallback_enabled', False)
+        })
+    except Exception as e:
+        logger.error(f"Error getting stream config: {e}")
+        return jsonify({'error': str(e)}), 500
+
+
 @app.route('/api/zones', methods=['POST'])
 def create_zone():
     """Create a new zone"""
