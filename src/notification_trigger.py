@@ -5,7 +5,7 @@ Sends notifications to TerrariumPI when gecko motion is detected
 
 import requests
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
