@@ -35,6 +35,7 @@ class MotionDetector:
         self.max_area = config['motion'].get('max_area', 8000)
         self.history_frames = config['motion'].get('history_frames', 500)
         self.detect_shadows = config['motion'].get('detect_shadows', True)
+        self.min_confidence = config['motion'].get('min_confidence', 0.0)
         
         # Region of Interest
         roi_config = config['motion'].get('region_of_interest', {})
@@ -162,6 +163,10 @@ class MotionDetector:
             
             # Calculate confidence based on area ratio
             confidence = min(1.0, area / self.max_area)
+
+            # Filter by confidence threshold
+            if confidence < self.min_confidence:
+                continue
             
             # Create motion event
             event = MotionEvent(

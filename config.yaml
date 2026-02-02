@@ -1,148 +1,84 @@
-# Nocturnal Eye Configuration
-# Gecko activity tracking system
-
-# Stream Source
 stream:
-  # URL to HLS stream from TerrariumPI via nocturnal-eye bypass endpoint
-  url: "http://localhost:8090/nocturnal-eye/stream.m3u8"
-  
-  # Fallback to test video file if stream unavailable
+  url: http://localhost:8090/nocturnal-eye/stream.m3u8
   fallback_enabled: false
-  fallback_path: "tests/sample_video.mp4"
-  
-  # Frame processing rate (process every N frames)
-  fps_target: 2
-  
-  # Connection timeout in seconds
+  fallback_path: tests/sample_video.mp4
+  fps_target: 8
   timeout: 30
-  
-  # Retry settings
   max_retries: 5
   retry_delay: 10
-
-# Motion Detection
 motion:
-  # Sensitivity (lower = more sensitive, range: 1-100)
-  sensitivity: 55
-  
-  # Minimum area in pixels to consider as gecko
-  min_area: 1200
-  
-  # Maximum area in pixels to consider as gecko
-  max_area: 8000
-  
-  # Number of frames to use for background history
-  history_frames: 1000
-  
-  # Detect and remove shadows
-  detect_shadows: true
-  
-  # Region of Interest (ROI)
-  # Set enabled: false to analyze entire frame
+  sensitivity: 28
+  min_area: 250
+  max_area: 30000
+  history_frames: 300
+  detect_shadows: false
+  min_confidence: 0.01
   region_of_interest:
     enabled: false
     x: 0
     y: 0
-    width: 640
-    height: 480
-
-# Object Tracking
+    width: 0
+    height: 0
 tracking:
-  # Minutes of no movement before considering "at rest"
   stationary_threshold: 5
-  
-  # Maximum distance in pixels to link detections across frames
-  max_tracking_distance: 100
-  
-  # Minimum consecutive detections to confirm object
-  min_detections: 10
-
-# Zones of Interest
-# Define areas in your terrarium for behavioral analysis
+  max_tracking_distance: 220
+  min_detections: 3
 zones:
-  - name: "Feeding Station"
-    x: 1800
-    y: 280
-    radius: 50
-    color: [0, 255, 0]  # Green
-    
-  - name: "Basking Spot"
-    x: 1420
-    y: 100
-    radius: 80
-    color: [255, 165, 0]  # Orange
-    
-  - name: "Hide Box"
-    x: 200
-    y: 400
-    radius: 70
-    color: [0, 0, 255]  # Blue
-
-# Schedule
+- name: Feeding Station
+  x: 120
+  y: 280
+  radius: 50
+  color:
+  - 0
+  - 255
+  - 0
+- name: Basking Spot
+  x: 500
+  y: 100
+  radius: 80
+  color:
+  - 255
+  - 165
+  - 0
+- name: Hide Box
+  x: 100
+  y: 400
+  radius: 70
+  color:
+  - 0
+  - 0
+  - 255
 schedule:
-  # Only process during these hours (24-hour format)
   enabled: false
-  start_time: "20:00"  # 8 PM
-  end_time: "08:00"    # 8 AM
-  
-  # Time zone
-  timezone: "America/New_York"
-
-# Database
+  start_time: '20:00'
+  end_time: 08:00
+  timezone: America/New_York
 database:
-  # Path to SQLite database
-  path: "data/gecko_activity.db"
-  
-  # Automatic backup
+  path: data/gecko_activity.db
   backup_enabled: true
-  backup_interval: "daily"
+  backup_interval: daily
   backup_retention_days: 30
-
-# API Server
 api:
   enabled: true
-  host: "0.0.0.0"
+  host: 0.0.0.0
   port: 5001
   cors_enabled: true
   debug: false
-
-# Snapshot Capture
 snapshots:
-  # Save annotated snapshot every N seconds
-  save_interval: 5
-  
-  # Maximum number of snapshots to keep
+  save_interval: 3
   max_snapshots: 200
-  
-  # JPEG quality (1-100)
   quality: 85
-
-# Heatmap Generation
 heatmap:
-  # Resolution of heatmap grid
   grid_size: 50
-  
-  # Color map (opencv colormap name)
-  colormap: "COLORMAP_JET"
-  
-  # Overlay alpha (0.0-1.0)
+  colormap: COLORMAP_JET
   overlay_alpha: 0.6
-
-# Logging
 logging:
-  level: "INFO"  # DEBUG, INFO, WARNING, ERROR, CRITICAL
-  file: "logs/nocturnal_eye.log"
+  level: INFO
+  file: logs/nocturnal_eye.log
   console: true
-  max_bytes: 10485760  # 10MB
+  max_bytes: 10485760
   backup_count: 5
-
-# Performance
 performance:
-  # Process priority (nice value: -20 to 19, higher = lower priority)
   nice_value: 10
-  
-  # Enable hardware acceleration if available
   use_gpu: false
-  
-  # Frame buffer size
   frame_buffer_size: 10

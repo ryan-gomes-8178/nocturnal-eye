@@ -1,0 +1,273 @@
+{
+  "timestamp": "2026-02-01T14:58:06.296139",
+  "filename": "detection_20260201_145806.jpg",
+  "detection_count": 19,
+  "detections": [
+    {
+      "centroid": [
+        309,
+        1055
+      ],
+      "area": 505,
+      "bounding_box": [
+        299,
+        1034,
+        23,
+        46
+      ],
+      "confidence": 0.0126375
+    },
+    {
+      "centroid": [
+        1095,
+        1049
+      ],
+      "area": 672,
+      "bounding_box": [
+        1060,
+        1032,
+        74,
+        33
+      ],
+      "confidence": 0.0168
+    },
+    {
+      "centroid": [
+        301,
+        1024
+      ],
+      "area": 97,
+      "bounding_box": [
+        296,
+        1017,
+        14,
+        14
+      ],
+      "confidence": 0.0024375
+    },
+    {
+      "centroid": [
+        1009,
+        1011
+      ],
+      "area": 78,
+      "bounding_box": [
+        1000,
+        1008,
+        19,
+        9
+      ],
+      "confidence": 0.0019625
+    },
+    {
+      "centroid": [
+        334,
+        1012
+      ],
+      "area": 63,
+      "bounding_box": [
+        329,
+        1006,
+        12,
+        12
+      ],
+      "confidence": 0.001575
+    },
+    {
+      "centroid": [
+        710,
+        1005
+      ],
+      "area": 119,
+      "bounding_box": [
+        699,
+        1001,
+        23,
+        11
+      ],
+      "confidence": 0.002975
+    },
+    {
+      "centroid": [
+        767,
+        996
+      ],
+      "area": 78,
+      "bounding_box": [
+        764,
+        989,
+        9,
+        16
+      ],
+      "confidence": 0.00195
+    },
+    {
+      "centroid": [
+        996,
+        991
+      ],
+      "area": 404,
+      "bounding_box": [
+        967,
+        981,
+        52,
+        24
+      ],
+      "confidence": 0.0101
+    },
+    {
+      "centroid": [
+        295,
+        989
+      ],
+      "area": 188,
+      "bounding_box": [
+        288,
+        976,
+        17,
+        29
+      ],
+      "confidence": 0.0047
+    },
+    {
+      "centroid": [
+        352,
+        981
+      ],
+      "area": 304,
+      "bounding_box": [
+        340,
+        969,
+        26,
+        30
+      ],
+      "confidence": 0.0076
+    },
+    {
+      "centroid": [
+        668,
+        960
+      ],
+      "area": 106,
+      "bounding_box": [
+        660,
+        955,
+        18,
+        13
+      ],
+      "confidence": 0.00265
+    },
+    {
+      "centroid": [
+        292,
+        939
+      ],
+      "area": 181,
+      "bounding_box": [
+        284,
+        930,
+        18,
+        18
+      ],
+      "confidence": 0.0045375
+    },
+    {
+      "centroid": [
+        701,
+        935
+      ],
+      "area": 118,
+      "bounding_box": [
+        693,
+        928,
+        19,
+        15
+      ],
+      "confidence": 0.0029625
+    },
+    {
+      "centroid": [
+        721,
+        920
+      ],
+      "area": 196,
+      "bounding_box": [
+        705,
+        912,
+        35,
+        18
+      ],
+      "confidence": 0.0049
+    },
+    {
+      "centroid": [
+        309,
+        918
+      ],
+      "area": 380,
+      "bounding_box": [
+        292,
+        908,
+        30,
+        25
+      ],
+      "confidence": 0.0095
+    },
+    {
+      "centroid": [
+        726,
+        885
+      ],
+      "area": 103,
+      "bounding_box": [
+        716,
+        880,
+        22,
+        11
+      ],
+      "confidence": 0.0025875
+    },
+    {
+      "centroid": [
+        592,
+        881
+      ],
+      "area": 74,
+      "bounding_box": [
+        586,
+        876,
+        15,
+        11
+      ],
+      "confidence": 0.0018625
+    },
+    {
+      "centroid": [
+        575,
+        808
+      ],
+      "area": 126,
+      "bounding_box": [
+        570,
+        799,
+        11,
+        20
+      ],
+      "confidence": 0.0031625
+    },
+    {
+      "centroid": [
+        630,
+        767
+      ],
+      "area": 386,
+      "bounding_box": [
+        619,
+        754,
+        22,
+        33
+      ],
+      "confidence": 0.0096625
+    }
+  ]
+}

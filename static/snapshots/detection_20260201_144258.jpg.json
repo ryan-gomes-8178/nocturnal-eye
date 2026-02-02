@@ -1,0 +1,49 @@
+{
+  "timestamp": "2026-02-01T14:42:58.955984",
+  "filename": "detection_20260201_144258.jpg",
+  "detection_count": 3,
+  "detections": [
+    {
+      "centroid": [
+        668,
+        1002
+      ],
+      "area": 123,
+      "bounding_box": [
+        657,
+        999,
+        26,
+        10
+      ],
+      "confidence": 0.0030875
+    },
+    {
+      "centroid": [
+        722,
+        990
+      ],
+      "area": 69,
+      "bounding_box": [
+        714,
+        985,
+        17,
+        11
+      ],
+      "confidence": 0.0017375
+    },
+    {
+      "centroid": [
+        562,
+        912
+      ],
+      "area": 84,
+      "bounding_box": [
+        558,
+        904,
+        9,
+        18
+      ],
+      "confidence": 0.0021
+    }
+  ]
+}

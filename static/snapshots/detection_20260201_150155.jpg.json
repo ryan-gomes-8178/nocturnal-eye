@@ -1,0 +1,133 @@
+{
+  "timestamp": "2026-02-01T15:01:55.809706",
+  "filename": "detection_20260201_150155.jpg",
+  "detection_count": 9,
+  "detections": [
+    {
+      "centroid": [
+        400,
+        1061
+      ],
+      "area": 570,
+      "bounding_box": [
+        389,
+        1038,
+        22,
+        42
+      ],
+      "confidence": 0.0142625
+    },
+    {
+      "centroid": [
+        315,
+        1025
+      ],
+      "area": 1300,
+      "bounding_box": [
+        298,
+        976,
+        32,
+        94
+      ],
+      "confidence": 0.0325
+    },
+    {
+      "centroid": [
+        714,
+        963
+      ],
+      "area": 421,
+      "bounding_box": [
+        692,
+        954,
+        44,
+        19
+      ],
+      "confidence": 0.010525
+    },
+    {
+      "centroid": [
+        279,
+        943
+      ],
+      "area": 298,
+      "bounding_box": [
+        272,
+        927,
+        18,
+        34
+      ],
+      "confidence": 0.00745
+    },
+    {
+      "centroid": [
+        657,
+        934
+      ],
+      "area": 356,
+      "bounding_box": [
+        637,
+        916,
+        42,
+        36
+      ],
+      "confidence": 0.0089125
+    },
+    {
+      "centroid": [
+        334,
+        902
+      ],
+      "area": 364,
+      "bounding_box": [
+        320,
+        890,
+        28,
+        29
+      ],
+      "confidence": 0.0091125
+    },
+    {
+      "centroid": [
+        657,
+        797
+      ],
+      "area": 128,
+      "bounding_box": [
+        653,
+        785,
+        13,
+        23
+      ],
+      "confidence": 0.0032125
+    },
+    {
+      "centroid": [
+        599,
+        797
+      ],
+      "area": 589,
+      "bounding_box": [
+        588,
+        776,
+        21,
+        46
+      ],
+      "confidence": 0.0147375
+    },
+    {
+      "centroid": [
+        655,
+        750
+      ],
+      "area": 85,
+      "bounding_box": [
+        652,
+        741,
+        7,
+        20
+      ],
+      "confidence": 0.002125
+    }
+  ]
+}

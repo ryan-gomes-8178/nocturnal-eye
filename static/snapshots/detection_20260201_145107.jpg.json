@@ -1,0 +1,161 @@
+{
+  "timestamp": "2026-02-01T14:51:07.640557",
+  "filename": "detection_20260201_145107.jpg",
+  "detection_count": 11,
+  "detections": [
+    {
+      "centroid": [
+        1122,
+        1066
+      ],
+      "area": 664,
+      "bounding_box": [
+        1098,
+        1052,
+        46,
+        28
+      ],
+      "confidence": 0.0166125
+    },
+    {
+      "centroid": [
+        1011,
+        1040
+      ],
+      "area": 425,
+      "bounding_box": [
+        987,
+        1028,
+        49,
+        24
+      ],
+      "confidence": 0.0106375
+    },
+    {
+      "centroid": [
+        300,
+        1053
+      ],
+      "area": 1069,
+      "bounding_box": [
+        285,
+        1012,
+        36,
+        68
+      ],
+      "confidence": 0.026725
+    },
+    {
+      "centroid": [
+        697,
+        1003
+      ],
+      "area": 231,
+      "bounding_box": [
+        682,
+        996,
+        29,
+        16
+      ],
+      "confidence": 0.005775
+    },
+    {
+      "centroid": [
+        753,
+        971
+      ],
+      "area": 88,
+      "bounding_box": [
+        744,
+        967,
+        20,
+        10
+      ],
+      "confidence": 0.0022125
+    },
+    {
+      "centroid": [
+        878,
+        970
+      ],
+      "area": 286,
+      "bounding_box": [
+        862,
+        961,
+        37,
+        18
+      ],
+      "confidence": 0.0071625
+    },
+    {
+      "centroid": [
+        839,
+        953
+      ],
+      "area": 237,
+      "bounding_box": [
+        824,
+        948,
+        32,
+        14
+      ],
+      "confidence": 0.005925
+    },
+    {
+      "centroid": [
+        602,
+        958
+      ],
+      "area": 1500,
+      "bounding_box": [
+        567,
+        927,
+        87,
+        77
+      ],
+      "confidence": 0.0375125
+    },
+    {
+      "centroid": [
+        588,
+        877
+      ],
+      "area": 146,
+      "bounding_box": [
+        577,
+        871,
+        24,
+        15
+      ],
+      "confidence": 0.00365
+    },
+    {
+      "centroid": [
+        651,
+        872
+      ],
+      "area": 81,
+      "bounding_box": [
+        641,
+        868,
+        21,
+        11
+      ],
+      "confidence": 0.002025
+    },
+    {
+      "centroid": [
+        590,
+        809
+      ],
+      "area": 298,
+      "bounding_box": [
+        578,
+        794,
+        25,
+        32
+      ],
+      "confidence": 0.00745
+    }
+  ]
+}

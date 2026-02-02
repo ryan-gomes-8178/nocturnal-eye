@@ -1,0 +1,133 @@
+{
+  "timestamp": "2026-02-01T14:56:15.963276",
+  "filename": "detection_20260201_145615.jpg",
+  "detection_count": 9,
+  "detections": [
+    {
+      "centroid": [
+        322,
+        1069
+      ],
+      "area": 85,
+      "bounding_box": [
+        317,
+        1059,
+        12,
+        21
+      ],
+      "confidence": 0.0021375
+    },
+    {
+      "centroid": [
+        348,
+        1015
+      ],
+      "area": 202,
+      "bounding_box": [
+        342,
+        1005,
+        16,
+        24
+      ],
+      "confidence": 0.00505
+    },
+    {
+      "centroid": [
+        667,
+        967
+      ],
+      "area": 307,
+      "bounding_box": [
+        648,
+        957,
+        37,
+        22
+      ],
+      "confidence": 0.0076875
+    },
+    {
+      "centroid": [
+        616,
+        950
+      ],
+      "area": 941,
+      "bounding_box": [
+        588,
+        930,
+        54,
+        43
+      ],
+      "confidence": 0.023525
+    },
+    {
+      "centroid": [
+        296,
+        934
+      ],
+      "area": 339,
+      "bounding_box": [
+        278,
+        926,
+        31,
+        22
+      ],
+      "confidence": 0.0084875
+    },
+    {
+      "centroid": [
+        705,
+        883
+      ],
+      "area": 153,
+      "bounding_box": [
+        692,
+        877,
+        27,
+        14
+      ],
+      "confidence": 0.003825
+    },
+    {
+      "centroid": [
+        587,
+        872
+      ],
+      "area": 111,
+      "bounding_box": [
+        578,
+        866,
+        20,
+        15
+      ],
+      "confidence": 0.0027875
+    },
+    {
+      "centroid": [
+        562,
+        815
+      ],
+      "area": 199,
+      "bounding_box": [
+        554,
+        808,
+        18,
+        18
+      ],
+      "confidence": 0.004975
+    },
+    {
+      "centroid": [
+        617,
+        782
+      ],
+      "area": 218,
+      "bounding_box": [
+        609,
+        768,
+        16,
+        33
+      ],
+      "confidence": 0.00545
+    }
+  ]
+}

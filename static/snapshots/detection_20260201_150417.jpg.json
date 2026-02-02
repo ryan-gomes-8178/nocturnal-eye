@@ -1,0 +1,203 @@
+{
+  "timestamp": "2026-02-01T15:04:17.253914",
+  "filename": "detection_20260201_150417.jpg",
+  "detection_count": 14,
+  "detections": [
+    {
+      "centroid": [
+        1101,
+        1043
+      ],
+      "area": 169,
+      "bounding_box": [
+        1090,
+        1035,
+        25,
+        17
+      ],
+      "confidence": 0.0042375
+    },
+    {
+      "centroid": [
+        419,
+        1037
+      ],
+      "area": 434,
+      "bounding_box": [
+        414,
+        1009,
+        12,
+        64
+      ],
+      "confidence": 0.01085
+    },
+    {
+      "centroid": [
+        879,
+        984
+      ],
+      "area": 97,
+      "bounding_box": [
+        873,
+        979,
+        14,
+        12
+      ],
+      "confidence": 0.0024375
+    },
+    {
+      "centroid": [
+        413,
+        974
+      ],
+      "area": 109,
+      "bounding_box": [
+        407,
+        967,
+        14,
+        15
+      ],
+      "confidence": 0.0027375
+    },
+    {
+      "centroid": [
+        360,
+        969
+      ],
+      "area": 271,
+      "bounding_box": [
+        351,
+        956,
+        21,
+        28
+      ],
+      "confidence": 0.006775
+    },
+    {
+      "centroid": [
+        295,
+        942
+      ],
+      "area": 116,
+      "bounding_box": [
+        290,
+        933,
+        12,
+        19
+      ],
+      "confidence": 0.0029
+    },
+    {
+      "centroid": [
+        741,
+        927
+      ],
+      "area": 65,
+      "bounding_box": [
+        736,
+        923,
+        13,
+        9
+      ],
+      "confidence": 0.0016375
+    },
+    {
+      "centroid": [
+        721,
+        940
+      ],
+      "area": 543,
+      "bounding_box": [
+        693,
+        921,
+        53,
+        33
+      ],
+      "confidence": 0.013575
+    },
+    {
+      "centroid": [
+        607,
+        915
+      ],
+      "area": 81,
+      "bounding_box": [
+        599,
+        911,
+        17,
+        10
+      ],
+      "confidence": 0.0020375
+    },
+    {
+      "centroid": [
+        680,
+        893
+      ],
+      "area": 79,
+      "bounding_box": [
+        671,
+        888,
+        19,
+        13
+      ],
+      "confidence": 0.0019875
+    },
+    {
+      "centroid": [
+        344,
+        884
+      ],
+      "area": 920,
+      "bounding_box": [
+        321,
+        864,
+        41,
+        50
+      ],
+      "confidence": 0.0230125
+    },
+    {
+      "centroid": [
+        672,
+        787
+      ],
+      "area": 290,
+      "bounding_box": [
+        665,
+        772,
+        14,
+        33
+      ],
+      "confidence": 0.00725
+    },
+    {
+      "centroid": [
+        618,
+        794
+      ],
+      "area": 705,
+      "bounding_box": [
+        609,
+        765,
+        19,
+        62
+      ],
+      "confidence": 0.017625
+    },
+    {
+      "centroid": [
+        800,
+        690
+      ],
+      "area": 116,
+      "bounding_box": [
+        793,
+        686,
+        16,
+        11
+      ],
+      "confidence": 0.0029125
+    }
+  ]
+}

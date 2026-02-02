@@ -1,0 +1,133 @@
+{
+  "timestamp": "2026-02-01T14:56:56.033915",
+  "filename": "detection_20260201_145656.jpg",
+  "detection_count": 9,
+  "detections": [
+    {
+      "centroid": [
+        295,
+        1049
+      ],
+      "area": 189,
+      "bounding_box": [
+        289,
+        1037,
+        15,
+        26
+      ],
+      "confidence": 0.004725
+    },
+    {
+      "centroid": [
+        887,
+        1025
+      ],
+      "area": 72,
+      "bounding_box": [
+        878,
+        1020,
+        20,
+        12
+      ],
+      "confidence": 0.0018125
+    },
+    {
+      "centroid": [
+        1025,
+        1023
+      ],
+      "area": 133,
+      "bounding_box": [
+        1011,
+        1019,
+        26,
+        11
+      ],
+      "confidence": 0.0033375
+    },
+    {
+      "centroid": [
+        355,
+        1003
+      ],
+      "area": 639,
+      "bounding_box": [
+        339,
+        982,
+        33,
+        49
+      ],
+      "confidence": 0.015975
+    },
+    {
+      "centroid": [
+        638,
+        955
+      ],
+      "area": 1292,
+      "bounding_box": [
+        597,
+        933,
+        88,
+        45
+      ],
+      "confidence": 0.0323
+    },
+    {
+      "centroid": [
+        304,
+        927
+      ],
+      "area": 376,
+      "bounding_box": [
+        287,
+        919,
+        34,
+        23
+      ],
+      "confidence": 0.0094125
+    },
+    {
+      "centroid": [
+        731,
+        927
+      ],
+      "area": 384,
+      "bounding_box": [
+        705,
+        914,
+        54,
+        29
+      ],
+      "confidence": 0.0096
+    },
+    {
+      "centroid": [
+        568,
+        815
+      ],
+      "area": 244,
+      "bounding_box": [
+        559,
+        806,
+        22,
+        19
+      ],
+      "confidence": 0.0061125
+    },
+    {
+      "centroid": [
+        623,
+        777
+      ],
+      "area": 411,
+      "bounding_box": [
+        612,
+        760,
+        21,
+        47
+      ],
+      "confidence": 0.0102875
+    }
+  ]
+}

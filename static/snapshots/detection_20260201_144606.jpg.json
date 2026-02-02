@@ -1,0 +1,133 @@
+{
+  "timestamp": "2026-02-01T14:46:06.529594",
+  "filename": "detection_20260201_144606.jpg",
+  "detection_count": 9,
+  "detections": [
+    {
+      "centroid": [
+        873,
+        1052
+      ],
+      "area": 412,
+      "bounding_box": [
+        826,
+        1031,
+        89,
+        40
+      ],
+      "confidence": 0.0103125
+    },
+    {
+      "centroid": [
+        668,
+        1037
+      ],
+      "area": 255,
+      "bounding_box": [
+        650,
+        1027,
+        38,
+        23
+      ],
+      "confidence": 0.0063875
+    },
+    {
+      "centroid": [
+        730,
+        1035
+      ],
+      "area": 1234,
+      "bounding_box": [
+        695,
+        1020,
+        65,
+        37
+      ],
+      "confidence": 0.0308625
+    },
+    {
+      "centroid": [
+        656,
+        995
+      ],
+      "area": 124,
+      "bounding_box": [
+        650,
+        989,
+        15,
+        14
+      ],
+      "confidence": 0.0031
+    },
+    {
+      "centroid": [
+        637,
+        992
+      ],
+      "area": 89,
+      "bounding_box": [
+        630,
+        988,
+        15,
+        11
+      ],
+      "confidence": 0.0022375
+    },
+    {
+      "centroid": [
+        583,
+        993
+      ],
+      "area": 257,
+      "bounding_box": [
+        564,
+        982,
+        37,
+        22
+      ],
+      "confidence": 0.0064375
+    },
+    {
+      "centroid": [
+        764,
+        938
+      ],
+      "area": 80,
+      "bounding_box": [
+        753,
+        932,
+        23,
+        14
+      ],
+      "confidence": 0.002
+    },
+    {
+      "centroid": [
+        651,
+        887
+      ],
+      "area": 143,
+      "bounding_box": [
+        632,
+        879,
+        38,
+        18
+      ],
+      "confidence": 0.003575
+    },
+    {
+      "centroid": [
+        612,
+        870
+      ],
+      "area": 60,
+      "bounding_box": [
+        604,
+        865,
+        17,
+        12
+      ],
+      "confidence": 0.0015125
+    }
+  ]
+}

@@ -1,0 +1,133 @@
+{
+  "timestamp": "2026-02-01T14:44:51.462834",
+  "filename": "detection_20260201_144451.jpg",
+  "detection_count": 9,
+  "detections": [
+    {
+      "centroid": [
+        706,
+        1070
+      ],
+      "area": 225,
+      "bounding_box": [
+        689,
+        1059,
+        34,
+        21
+      ],
+      "confidence": 0.0056375
+    },
+    {
+      "centroid": [
+        1039,
+        1062
+      ],
+      "area": 61,
+      "bounding_box": [
+        1031,
+        1058,
+        18,
+        9
+      ],
+      "confidence": 0.001525
+    },
+    {
+      "centroid": [
+        889,
+        1068
+      ],
+      "area": 275,
+      "bounding_box": [
+        866,
+        1058,
+        47,
+        22
+      ],
+      "confidence": 0.0068875
+    },
+    {
+      "centroid": [
+        726,
+        1051
+      ],
+      "area": 272,
+      "bounding_box": [
+        710,
+        1041,
+        33,
+        27
+      ],
+      "confidence": 0.0068125
+    },
+    {
+      "centroid": [
+        576,
+        999
+      ],
+      "area": 207,
+      "bounding_box": [
+        563,
+        989,
+        32,
+        18
+      ],
+      "confidence": 0.0051875
+    },
+    {
+      "centroid": [
+        672,
+        943
+      ],
+      "area": 188,
+      "bounding_box": [
+        653,
+        933,
+        41,
+        23
+      ],
+      "confidence": 0.0047125
+    },
+    {
+      "centroid": [
+        585,
+        900
+      ],
+      "area": 152,
+      "bounding_box": [
+        572,
+        894,
+        29,
+        16
+      ],
+      "confidence": 0.0038125
+    },
+    {
+      "centroid": [
+        640,
+        859
+      ],
+      "area": 376,
+      "bounding_box": [
+        611,
+        846,
+        62,
+        29
+      ],
+      "confidence": 0.0094125
+    },
+    {
+      "centroid": [
+        559,
+        826
+      ],
+      "area": 81,
+      "bounding_box": [
+        551,
+        823,
+        19,
+        9
+      ],
+      "confidence": 0.002025
+    }
+  ]
+}
