@@ -191,6 +191,17 @@ def test_api_endpoints():
         logger.info(f"   ✓ Size: {len(response.data)} bytes")
     else:
         logger.info(f"   ℹ Status: {response.status_code} (likely no data for this date)")
+    
+    # Test 9: Stream configuration
+    logger.info("\n9. Testing /api/config/stream")
+    response = client.get('/api/config/stream')
+    if response.status_code == 200:
+        data = json.loads(response.data)
+        logger.info(f"   ✓ Status: {response.status_code}")
+        logger.info(f"   ✓ Stream URL: {data.get('url', 'NOT CONFIGURED')}")
+        logger.info(f"   ✓ Fallback enabled: {data.get('fallback_enabled', False)}")
+    else:
+        logger.error(f"   ✗ Status: {response.status_code}")
 
 
 def main():
