@@ -308,7 +308,7 @@
             <div class="card" style="grid-column: 1 / -1;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                     <h2>📸 Recent Detections</h2>
-                    <button class="refresh-btn" onclick="loadDashboard()">🔄 Refresh</button>
+                    <button class="refresh-btn" id="refreshBtn">🔄 Refresh</button>
                 </div>
                 <div class="snapshot-grid" id="snapshotGrid">
                     <div class="loading">Loading snapshots...</div>
@@ -332,7 +332,7 @@
     </div>
 
     <div class="modal" id="imageModal">
-        <span class="close-modal" onclick="closeModal()">&times;</span>
+        <span class="close-modal" id="closeModalBtn">&times;</span>
         <div class="modal-content">
             <img id="modalImage" src="" alt="Full size">
         </div>
@@ -556,6 +556,12 @@
 
         // Auto-refresh every 30 seconds
         setInterval(loadDashboard, 30000);
+
+        // Refresh button event listener
+        document.getElementById('refreshBtn').addEventListener('click', loadDashboard);
+
+        // Close modal button event listener
+        document.getElementById('closeModalBtn').addEventListener('click', closeModal);
 
         // Close modal on ESC key
         document.addEventListener('keydown', (e) => {
