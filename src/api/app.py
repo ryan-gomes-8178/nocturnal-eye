@@ -21,7 +21,8 @@ with open('config.yaml', 'r') as f:
 
 # Initialize Flask app
 app = Flask(__name__, static_folder='../../static', static_url_path='/static')
-allowed_origins = config.get('allowed_cors_origins', ['http://localhost:5001'])
+api_config = config.get('api', {})
+allowed_origins = api_config.get('allowed_cors_origins', ['http://localhost:5001'])
 CORS(app, origins=allowed_origins)
 
 # Initialize components
@@ -267,7 +268,7 @@ def get_recent_snapshots():
             return jsonify({'error': 'Invalid limit parameter. It must be a positive integer.'}), 400
 
         # Apply an upper bound to prevent excessive resource usage
-        max_snapshots = config.get('max_snapshots', 500)
+        max_snapshots = config.get('snapshots', {}).get('max_snapshots', 500)
         if not isinstance(max_snapshots, int) or max_snapshots <= 0:
             max_snapshots = 500
         limit = min(limit, max_snapshots)
@@ -321,6 +322,20 @@ def get_dashboard_summary():
         })
     except Exception as e:
         logger.error(f"Error getting dashboard summary: {e}")
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/config/stream', methods=['GET'])
+def get_stream_config():
+    """Get stream configuration"""
+    try:
+        stream_config = config.get('stream', {})
+        return jsonify({
+            'url': stream_config.get('url', ''),
+            'fallback_enabled': stream_config.get('fallback_enabled', False)
+        })
+    except Exception as e:
+        logger.error(f"Error getting stream config: {e}")
         return jsonify({'error': str(e)}), 500
 
 

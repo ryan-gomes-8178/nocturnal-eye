@@ -66,7 +66,7 @@ class SnapshotManager:
         
         # Generate filename
         timestamp = datetime.now()
-        filename = f"detection_{timestamp.strftime('%Y%m%d_%H%M%S')}.jpg"
+        filename = f"detection_{timestamp.strftime('%Y%m%d_%H%M%S_%f')}.jpg"
         filepath = self.snapshot_dir / filename
         
         # Save image
@@ -94,8 +94,10 @@ class SnapshotManager:
             # Try to clean up the image file since metadata failed
             try:
                 filepath.unlink()
-            except Exception:
-                pass
+            except Exception as cleanup_error:
+                logger.warning(
+                    f"Failed to delete snapshot image {filepath} after metadata save error: {cleanup_error}"
+                )
             return None
         
         self.last_snapshot_time = timestamp
