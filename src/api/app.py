@@ -298,10 +298,10 @@ def get_snapshots_range():
             limit = int(limit_param)
             offset = int(offset_param)
         except (TypeError, ValueError):
-            return jsonify({'error': 'Invalid limit/offset parameter. It must be an integer.'}), 400
+            return jsonify({'error': 'Invalid limit/offset parameter. Limit and offset must be integers.'}), 400
 
         if limit <= 0 or offset < 0:
-            return jsonify({'error': 'Invalid limit/offset parameter.'}), 400
+            return jsonify({'error': 'Invalid limit/offset parameter. Limit must be greater than 0 and offset must be non-negative.'}), 400
 
         limit = min(limit, 500)
         start_date = datetime.fromisoformat(start_str)
