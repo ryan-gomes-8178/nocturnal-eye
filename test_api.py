@@ -97,9 +97,11 @@ def test_api_endpoints():
     
     # Use Flask test client
     client = app.test_client()
+    test_num = 1
     
-    # Test 1: Health check
-    logger.info("\n1. Testing /api/health")
+    # Test: Health check
+    logger.info(f"\n{test_num}. Testing /api/health")
+    test_num += 1
     response = client.get('/api/health')
     if response.status_code == 200:
         data = json.loads(response.data)
@@ -109,8 +111,9 @@ def test_api_endpoints():
     else:
         logger.error(f"   ✗ Status: {response.status_code}")
     
-    # Test 2: Today's activity
-    logger.info("\n2. Testing /api/activity/today")
+    # Test: Today's activity
+    logger.info(f"\n{test_num}. Testing /api/activity/today")
+    test_num += 1
     response = client.get('/api/activity/today')
     if response.status_code == 200:
         data = json.loads(response.data)
@@ -121,8 +124,9 @@ def test_api_endpoints():
     else:
         logger.error(f"   ✗ Status: {response.status_code}")
     
-    # Test 3: Date range query
-    logger.info("\n3. Testing /api/activity/range")
+    # Test: Date range query
+    logger.info(f"\n{test_num}. Testing /api/activity/range")
+    test_num += 1
     start_date = (datetime.now() - timedelta(days=3)).strftime('%Y-%m-%d')
     end_date = datetime.now().strftime('%Y-%m-%d')
     response = client.get(f'/api/activity/range?start={start_date}T00:00:00&end={end_date}T23:59:59')
@@ -134,8 +138,9 @@ def test_api_endpoints():
     else:
         logger.error(f"   ✗ Status: {response.status_code}")
     
-    # Test 4: Latest events
-    logger.info("\n4. Testing /api/events/latest")
+    # Test: Latest events
+    logger.info(f"\n{test_num}. Testing /api/events/latest")
+    test_num += 1
     response = client.get('/api/events/latest?limit=10')
     if response.status_code == 200:
         data = json.loads(response.data)
@@ -146,8 +151,9 @@ def test_api_endpoints():
     else:
         logger.error(f"   ✗ Status: {response.status_code}")
     
-    # Test 5: Weekly stats
-    logger.info("\n5. Testing /api/stats/weekly")
+    # Test: Weekly stats
+    logger.info(f"\n{test_num}. Testing /api/stats/weekly")
+    test_num += 1
     response = client.get('/api/stats/weekly')
     if response.status_code == 200:
         data = json.loads(response.data)
@@ -158,8 +164,9 @@ def test_api_endpoints():
     else:
         logger.error(f"   ✗ Status: {response.status_code}")
     
-    # Test 6: Zones
-    logger.info("\n6. Testing /api/zones")
+    # Test: Zones
+    logger.info(f"\n{test_num}. Testing /api/zones")
+    test_num += 1
     response = client.get('/api/zones')
     if response.status_code == 200:
         data = json.loads(response.data)
@@ -170,8 +177,9 @@ def test_api_endpoints():
     else:
         logger.error(f"   ✗ Status: {response.status_code}")
     
-    # Test 7: Database stats
-    logger.info("\n7. Testing /api/database/stats")
+    # Test: Database stats
+    logger.info(f"\n{test_num}. Testing /api/database/stats")
+    test_num += 1
     response = client.get('/api/database/stats')
     if response.status_code == 200:
         data = json.loads(response.data)
@@ -181,8 +189,9 @@ def test_api_endpoints():
     else:
         logger.error(f"   ✗ Status: {response.status_code}")
     
-    # Test 8: Heatmap generation
-    logger.info("\n8. Testing /api/heatmap")
+    # Test: Heatmap generation
+    logger.info(f"\n{test_num}. Testing /api/heatmap")
+    test_num += 1
     date_str = (datetime.now() - timedelta(days=1)).strftime('%Y-%m-%d')
     response = client.get(f'/api/heatmap?date={date_str}')
     if response.status_code == 200:
@@ -192,8 +201,9 @@ def test_api_endpoints():
     else:
         logger.info(f"   ℹ Status: {response.status_code} (likely no data for this date)")
     
-    # Test 9: Stream configuration
-    logger.info("\n9. Testing /api/config/stream")
+    # Test: Stream configuration
+    logger.info(f"\n{test_num}. Testing /api/config/stream")
+    test_num += 1
     response = client.get('/api/config/stream')
     if response.status_code == 200:
         data = json.loads(response.data)

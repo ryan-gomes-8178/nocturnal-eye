@@ -230,6 +230,16 @@
             flex-direction: column;
         }
 
+        .stream-error-icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+
+        .stream-error-message {
+            font-size: 18px;
+            font-weight: bold;
+        }
+
         .modal {
             display: none;
             position: fixed;
@@ -310,8 +320,8 @@
                         Your browser does not support the video tag.
                     </video>
                     <div id="streamError" class="stream-error-overlay">
-                        <div style="font-size: 48px; margin-bottom: 10px;">⚠️</div>
-                        <div id="streamErrorMessage" style="font-size: 18px; font-weight: bold;"></div>
+                        <div class="stream-error-icon">⚠️</div>
+                        <div id="streamErrorMessage" class="stream-error-message"></div>
                     </div>
                     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
                     <script>
@@ -319,10 +329,14 @@
                             const streamError = document.getElementById('streamError');
                             const streamErrorMessage = document.getElementById('streamErrorMessage');
                             
-                            function showError(message) {
-                                streamErrorMessage.textContent = message;
+                            function showError(userMessage, technicalDetails = '') {
+                                streamErrorMessage.textContent = userMessage;
                                 streamError.style.display = 'flex';
-                                console.error('Stream error:', message);
+                                if (technicalDetails) {
+                                    console.error('Stream error:', userMessage, '- Technical details:', technicalDetails);
+                                } else {
+                                    console.error('Stream error:', userMessage);
+                                }
                             }
                             
                             try {
@@ -357,17 +371,17 @@
                                         if (data.fatal) {
                                             const errorType = data.type || 'unknown';
                                             const errorDetails = data.details || 'no details';
-                                            showError(`Stream ${errorType} error (${errorDetails}). Please check stream URL and connection.`);
+                                            showError('Unable to load video stream. Please check your stream URL and network connection.', `${errorType}: ${errorDetails}`);
                                         }
                                     });
                                 } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
                                     video.src = hlsSource;
                                     video.onerror = () => {
-                                        showError('Stream playback error. Please check stream URL and connection.');
+                                        showError('Unable to load video stream. Please check your stream URL and network connection.');
                                     };
                                 }
                             } catch (error) {
-                                showError('Error initializing live stream: ' + error.message);
+                                showError('Error initializing live stream. Please refresh the page and try again.', error.message);
                             }
                         })();
                     </script>
