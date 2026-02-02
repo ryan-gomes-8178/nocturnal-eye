@@ -618,10 +618,10 @@
                         }
                         
                         // Validate color components are valid integers between 0-255
-                        const isValidColor = color.length === 3 && 
+                        const isValidColor = Array.isArray(color) && color.length === 3 && 
                             color.every(c => Number.isInteger(c) && c >= 0 && c <= 255);
                         if (!isValidColor) {
-                            console.warn(`Invalid color for zone ${zone.name}:`, zone.color, '- using default green');
+                            console.warn(`Invalid color for zone ${zone.name}:`, color, '- using default green');
                             color = [0, 255, 0];
                         }
                         
