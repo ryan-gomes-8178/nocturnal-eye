@@ -293,7 +293,7 @@
                            controls>
                         Your browser does not support the video tag.
                     </video>
-                    <div id="streamError" style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); color: #ff6b6b; display: flex; align-items: center; justify-content: center; text-align: center; padding: 20px; flex-direction: column;">
+                    <div id="streamError" style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); color: #ff6b6b; align-items: center; justify-content: center; text-align: center; padding: 20px; flex-direction: column;">
                         <div style="font-size: 48px; margin-bottom: 10px;">⚠️</div>
                         <div id="streamErrorMessage" style="font-size: 18px; font-weight: bold;"></div>
                     </div>
@@ -339,7 +339,9 @@
                                     });
                                     hls.on(Hls.Events.ERROR, function (event, data) {
                                         if (data.fatal) {
-                                            showError('Stream playback error. Please check stream URL and connection.');
+                                            const errorType = data.type || 'unknown';
+                                            const errorDetails = data.details || 'no details';
+                                            showError(`Stream ${errorType} error (${errorDetails}). Please check stream URL and connection.`);
                                         }
                                     });
                                 } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
