@@ -589,7 +589,7 @@
                 
                 const config = await response.json();
                 
-                if (config.url && config.url.trim() !== '') {
+                if (typeof config.url === 'string' && config.url.trim() !== '') {
                     const video = document.getElementById('liveStream');
                     // Clear any existing sources before appending new one
                     video.innerHTML = '';
@@ -613,10 +613,11 @@
                     <div style="font-size: 0.9em;">Unable to load stream configuration. Please check your settings.</div>
                 `;
                 const container = video.parentElement;
-                if (container && window.getComputedStyle(container).position === 'static') {
-                    container.style.position = 'relative';
-                }
                 if (container) {
+                    // Ensure container has relative positioning for absolute child
+                    if (window.getComputedStyle(container).position === 'static') {
+                        container.style.position = 'relative';
+                    }
                     container.appendChild(errorDiv);
                 }
             }
