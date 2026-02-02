@@ -252,6 +252,12 @@ def get_recent_snapshots():
 
         if limit <= 0:
             return jsonify({'error': 'Invalid limit parameter. It must be a positive integer.'}), 400
+
+        # Apply an upper bound to prevent excessive resource usage
+        max_snapshots = config.get('max_snapshots', 500)
+        if not isinstance(max_snapshots, int) or max_snapshots <= 0:
+            max_snapshots = 500
+        limit = min(limit, max_snapshots)
         snapshots = snapshot_mgr.get_recent_snapshots(limit)
         
         return jsonify({
