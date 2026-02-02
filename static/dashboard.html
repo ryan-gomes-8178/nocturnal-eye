@@ -246,6 +246,33 @@
             transform: translateY(-2px);
         }
 
+        .stream-error-overlay {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            color: #ff6b6b;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 20px;
+            flex-direction: column;
+            z-index: 1;
+        }
+
+        .stream-error-icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+
+        .stream-error-message {
+            font-size: 18px;
+            font-weight: bold;
+        }
+
         .modal {
             display: none;
             position: fixed;
@@ -321,30 +348,75 @@
                 <h2>🎥 Live Stream with Zones</h2>
                 <div style="position: relative; width: 100%; max-width: 960px; margin: 0 auto; background: #000; border-radius: 8px; overflow: hidden;">
                     <video id="liveStream" 
-                           style="width: 100%; height: 100%; display: block; background: #000;"
+                           style="width: 100%; height: auto; display: block; background: #000;"
                            controls>
-                        <source src="http://localhost:8090/nocturnal-eye/stream.m3u8" type="application/x-mpegURL">
                         Your browser does not support the video tag.
                     </video>
+                    <div id="streamError" class="stream-error-overlay">
+                        <div class="stream-error-icon">⚠️</div>
+                        <div id="streamErrorMessage" class="stream-error-message"></div>
+                    </div>
                     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
                     <script>
-                        (function () {
-                            var video = document.getElementById('liveStream');
-                            var hlsSource = 'http://localhost:8090/nocturnal-eye/stream.m3u8';
-
-                            if (window.Hls && window.Hls.isSupported()) {
-                                var hls = new Hls();
-                                hls.loadSource(hlsSource);
-                                hls.attachMedia(video);
-                                hls.on(Hls.Events.MANIFEST_PARSED, function () {
-                                    if (video.autoplay) {
-                                        video.play().catch(function () {
-                                            // Autoplay may be blocked; ignore errors.
-                                        });
-                                    }
-                                });
-                            } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-                                video.src = hlsSource;
+                        (async function () {
+                            const streamError = document.getElementById('streamError');
+                            const streamErrorMessage = document.getElementById('streamErrorMessage');
+                            
+                            function showError(userMessage, technicalDetails = '') {
+                                streamErrorMessage.textContent = userMessage;
+                                streamError.style.display = 'flex';
+                                if (technicalDetails) {
+                                    console.error('Stream error:', userMessage, '- Technical details:', technicalDetails);
+                                } else {
+                                    console.error('Stream error:', userMessage);
+                                }
+                            }
+                            
+                            try {
+                                // Fetch stream URL from API
+                                const response = await fetch('/api/config/stream');
+                                if (!response.ok) {
+                                    showError('Failed to fetch stream configuration. Please check API connection.');
+                                    return;
+                                }
+                                const streamConfig = await response.json();
+                                const hlsSource = streamConfig.url;
+                                
+                                if (!hlsSource) {
+                                    showError('No stream URL configured. Please configure stream URL in config.yaml.');
+                                    return;
+                                }
+                                
+                                const video = document.getElementById('liveStream');
+                                
+                                if (window.Hls && window.Hls.isSupported()) {
+                                    const hls = new Hls();
+                                    hls.loadSource(hlsSource);
+                                    hls.attachMedia(video);
+                                    hls.on(Hls.Events.MANIFEST_PARSED, () => {
+                                        if (video.autoplay) {
+                                            video.play().catch(() => {
+                                                // Autoplay may be blocked; ignore errors.
+                                            });
+                                        }
+                                    });
+                                    hls.on(Hls.Events.ERROR, (event, data) => {
+                                        if (data.fatal) {
+                                            const errorType = data.type || 'unknown';
+                                            const errorDetails = data.details || 'no details';
+                                            showError('Unable to load video stream. Please check your stream URL and network connection.', `${errorType}: ${errorDetails}`);
+                                        }
+                                    });
+                                } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                                    video.src = hlsSource;
+                                    video.onerror = () => {
+                                        showError('Unable to load video stream. Please check your stream URL and network connection.');
+                                    };
+                                } else {
+                                    showError('Your browser does not support HLS video playback. Please use a modern browser like Chrome, Firefox, or Safari.');
+                                }
+                            } catch (error) {
+                                showError('Error initializing live stream. Please refresh the page and try again.', error.message);
                             }
                         })();
                     </script>
@@ -416,6 +488,11 @@
         async function loadDashboard() {
             try {
                 const response = await fetch('/api/dashboard/summary');
+                
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch dashboard summary: ${response.status} ${response.statusText}`);
+                }
+                
                 const data = await response.json();
 
                 // Update stats with validation
@@ -625,12 +702,31 @@
             list.innerHTML = '';
 
             zones.forEach(zone => {
-                let color = '[0, 255, 0]';
+                let color = 'rgb(0, 255, 0)'; // Default green
                 try {
-                    color = zone?.color;
-                    const rgb = JSON.parse(color);
-                    color = `rgb(${rgb[2]}, ${rgb[1]}, ${rgb[0]})`; // BGR to RGB
+                    const colorData = zone?.color;
+                    const rgb = JSON.parse(colorData);
+                    
+                    // Validate that rgb is an array of exactly 3 numbers
+                    if (Array.isArray(rgb) && rgb.length === 3) {
+                        // Validate each component is a number between 0-255
+                        const isValid = rgb.every(component => 
+                            typeof component === 'number' && 
+                            !isNaN(component) && 
+                            component >= 0 && 
+                            component <= 255
+                        );
+                        
+                        if (isValid) {
+                            // Clamp values to 0-255 and convert to integers for safety
+                            const r = Math.floor(Math.max(0, Math.min(255, rgb[2])));
+                            const g = Math.floor(Math.max(0, Math.min(255, rgb[1])));
+                            const b = Math.floor(Math.max(0, Math.min(255, rgb[0])));
+                            color = `rgb(${r}, ${g}, ${b})`; // BGR to RGB
+                        }
+                    }
                 } catch (e) {
+                    // Use default color on any error
                     color = 'rgb(0, 255, 0)';
                 }
 
@@ -725,10 +821,63 @@
             if (e.key === 'Escape') closeModal();
         });
 
+        // Initialize live stream with dynamic URL
+        async function initLiveStream() {
+            try {
+                const response = await fetch('/api/config/stream');
+                
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch stream config: ${response.status} ${response.statusText}`);
+                }
+                
+                const config = await response.json();
+                
+                if (typeof config.url === 'string' && config.url.trim() !== '') {
+                    const video = document.getElementById('liveStream');
+                    // Clear any existing sources before appending new one
+                    video.innerHTML = '';
+                    const source = document.createElement('source');
+                    source.src = config.url;
+                    source.type = 'application/x-mpegURL';
+                    video.appendChild(source);
+                    video.load();
+                } else {
+                    throw new Error('No stream URL configured in settings');
+                }
+            } catch (error) {
+                console.error('Error loading stream config:', error);
+                
+                // Display user-friendly error message in video element area
+                const video = document.getElementById('liveStream');
+                const errorDiv = document.createElement('div');
+                errorDiv.style.cssText = 'position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #ff5555; text-align: center; padding: 20px; background: rgba(0,0,0,0.8); border-radius: 8px; max-width: 80%;';
+                errorDiv.innerHTML = `
+                    <div style="font-size: 1.2em; margin-bottom: 10px;">⚠️ Stream Unavailable</div>
+                    <div style="font-size: 0.9em;">Unable to load stream configuration. Please check your settings.</div>
+                `;
+                const container = video.parentElement;
+                if (container) {
+                    // Ensure container has relative positioning for absolute child
+                    if (window.getComputedStyle(container).position === 'static') {
+                        container.style.position = 'relative';
+                    }
+                    container.appendChild(errorDiv);
+                }
+            }
+        }
+
+        // Initialize stream on page load
+        initLiveStream();
+
         // Initialize zones overlay on live stream
         async function initZonesOverlay() {
             try {
                 const response = await fetch('/api/zones');
+                
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch zones: ${response.status} ${response.statusText}`);
+                }
+                
                 const data = await response.json();
                 const zones = data.zones || [];
                 
@@ -766,6 +915,14 @@
                             color = colorStr.split(',').map(c => parseInt(c.trim()));
                         } else if (Array.isArray(zone.color)) {
                             color = zone.color;
+                        }
+                        
+                        // Validate color components are valid integers between 0-255
+                        const isValidColor = Array.isArray(color) && color.length === 3 && 
+                            color.every(c => Number.isInteger(c) && c >= 0 && c <= 255);
+                        if (!isValidColor) {
+                            console.warn(`Invalid color for zone ${zone.name}: expected array of 3 integers (0-255), got:`, color);
+                            color = [0, 255, 0];
                         }
                         
                         // Draw circle outline

@@ -1,18 +1,36 @@
 stream:
-  url: http://localhost:8090/nocturnal-eye/stream.m3u8
+  # URL to HLS stream from TerrariumPI via nocturnal-eye bypass endpoint
+  url: "http://localhost:8090/nocturnal-eye/stream.m3u8"
+  
+  # Fallback to test video file if stream unavailable
   fallback_enabled: false
-  fallback_path: tests/sample_video.mp4
-  fps_target: 8
+  fallback_path: "tests/sample_video.mp4"
+  
+  # Frame processing rate (process every N frames)
+  fps_target: 2
+  
+  # Connection timeout in seconds
   timeout: 30
   max_retries: 5
   retry_delay: 10
 motion:
-  sensitivity: 28
-  min_area: 250
-  max_area: 30000
-  history_frames: 300
-  detect_shadows: false
-  min_confidence: 0.01
+  # Sensitivity (lower = more sensitive, range: 1-100)
+  sensitivity: 55
+  
+  # Minimum area in pixels to consider as gecko
+  min_area: 1200
+  
+  # Maximum area in pixels to consider as gecko
+  max_area: 8000
+  
+  # Number of frames to use for background history
+  history_frames: 1000
+  
+  # Detect and remove shadows
+  detect_shadows: true
+  
+  # Region of Interest (ROI)
+  # Set enabled: false to analyze entire frame
   region_of_interest:
     enabled: false
     x: 0
@@ -21,38 +39,45 @@ motion:
     height: 0
 tracking:
   stationary_threshold: 5
+  
+  # Maximum distance in pixels to link detections across frames
   max_tracking_distance: 220
+  
+  # Minimum consecutive detections to confirm object
   min_detections: 3
+
+# Zones of Interest
+# Define areas in your terrarium for behavioral analysis
 zones:
-- name: Feeding Station
-  x: 120
-  y: 195
-  radius: 50
-  color:
-  - 0
-  - 255
-  - 0
-- name: Basking Spot
-  x: 500
-  y: 100
-  radius: 80
-  color:
-  - 255
-  - 165
-  - 0
-- name: Hide Box
-  x: 100
-  y: 400
-  radius: 70
-  color:
-  - 0
-  - 0
-  - 255
+  - name: "Feeding Station"
+    x: 120
+    y: 195
+    radius: 50
+    color: [0, 255, 0]  # Green
+    
+  - name: "Basking Spot"
+    x: 500
+    y: 100
+    radius: 80
+    color: [255, 165, 0]  # Orange
+    
+  - name: "Hide Box"
+    x: 100
+    y: 400
+    radius: 70
+    color: [0, 0, 255]  # Blue
+
+# Schedule
 schedule:
+  # Only process during these hours (24-hour format)
   enabled: false
-  start_time: '20:00'
-  end_time: 08:00
-  timezone: America/New_York
+  start_time: "20:00"  # 8 PM
+  end_time: "08:00"    # 8 AM
+  
+  # Time zone
+  timezone: "America/New_York"
+
+# Database
 database:
   path: data/gecko_activity.db
   backup_enabled: true
@@ -63,10 +88,28 @@ api:
   host: 0.0.0.0
   port: 5001
   cors_enabled: true
+  
+  # CORS allowed origins (list of URLs allowed to access the API)
+  allowed_cors_origins:
+    - "http://localhost:5001"
+  
   debug: false
+
+# Snapshot Capture
 snapshots:
   # Save annotated snapshot every N seconds
-  save_interval: 10
+  save_interval: 30
+  
+  # Maximum number of snapshots to keep
+  max_snapshots: 200
+  
+  # JPEG quality (1-100)
+  quality: 85
+
+# Heatmap Generation
+heatmap:
+  # Resolution of heatmap grid
+  grid_size: 50
   
   # Maximum number of snapshots to keep
   max_snapshots: 200
