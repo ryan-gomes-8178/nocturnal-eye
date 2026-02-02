@@ -501,12 +501,31 @@
             list.innerHTML = '';
 
             zones.forEach(zone => {
-                let color = '[0, 255, 0]';
+                let color = 'rgb(0, 255, 0)'; // Default green
                 try {
-                    color = zone?.color;
-                    const rgb = JSON.parse(color);
-                    color = `rgb(${rgb[2]}, ${rgb[1]}, ${rgb[0]})`; // BGR to RGB
+                    const colorData = zone?.color;
+                    const rgb = JSON.parse(colorData);
+                    
+                    // Validate that rgb is an array of exactly 3 numbers
+                    if (Array.isArray(rgb) && rgb.length === 3) {
+                        // Validate each component is a number between 0-255
+                        const isValid = rgb.every(component => 
+                            typeof component === 'number' && 
+                            !isNaN(component) && 
+                            component >= 0 && 
+                            component <= 255
+                        );
+                        
+                        if (isValid) {
+                            // Clamp values to 0-255 and convert to integers for safety
+                            const r = Math.floor(Math.max(0, Math.min(255, rgb[2])));
+                            const g = Math.floor(Math.max(0, Math.min(255, rgb[1])));
+                            const b = Math.floor(Math.max(0, Math.min(255, rgb[0])));
+                            color = `rgb(${r}, ${g}, ${b})`; // BGR to RGB
+                        }
+                    }
                 } catch (e) {
+                    // Use default color on any error
                     color = 'rgb(0, 255, 0)';
                 }
 
