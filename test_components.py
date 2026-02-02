@@ -602,7 +602,7 @@ def main():
         tracker = test_tracker()
         generator = test_heatmap_generator()
         analyzer = test_zone_analyzer()
-        snapshot_mgr = test_snapshot_manager()
+        test_snapshot_manager()
         notification = test_notification_trigger()
         
         # Summary
