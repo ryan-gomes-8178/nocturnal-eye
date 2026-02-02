@@ -291,28 +291,43 @@
                     <video id="liveStream" 
                            style="width: 100%; height: auto; display: block; background: #000;"
                            controls>
-                        <source src="http://localhost:8090/nocturnal-eye/stream.m3u8" type="application/x-mpegURL">
                         Your browser does not support the video tag.
                     </video>
                     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
                     <script>
-                        (function () {
-                            var video = document.getElementById('liveStream');
-                            var hlsSource = 'http://localhost:8090/nocturnal-eye/stream.m3u8';
-
-                            if (window.Hls && window.Hls.isSupported()) {
-                                var hls = new Hls();
-                                hls.loadSource(hlsSource);
-                                hls.attachMedia(video);
-                                hls.on(Hls.Events.MANIFEST_PARSED, function () {
-                                    if (video.autoplay) {
-                                        video.play().catch(function () {
-                                            // Autoplay may be blocked; ignore errors.
-                                        });
-                                    }
-                                });
-                            } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-                                video.src = hlsSource;
+                        (async function () {
+                            try {
+                                // Fetch stream URL from API
+                                const response = await fetch('/api/config/stream');
+                                if (!response.ok) {
+                                    throw new Error('Failed to fetch stream configuration');
+                                }
+                                const streamConfig = await response.json();
+                                const hlsSource = streamConfig.url;
+                                
+                                if (!hlsSource) {
+                                    console.error('No stream URL configured');
+                                    return;
+                                }
+                                
+                                var video = document.getElementById('liveStream');
+                                
+                                if (window.Hls && window.Hls.isSupported()) {
+                                    var hls = new Hls();
+                                    hls.loadSource(hlsSource);
+                                    hls.attachMedia(video);
+                                    hls.on(Hls.Events.MANIFEST_PARSED, function () {
+                                        if (video.autoplay) {
+                                            video.play().catch(function () {
+                                                // Autoplay may be blocked; ignore errors.
+                                            });
+                                        }
+                                    });
+                                } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                                    video.src = hlsSource;
+                                }
+                            } catch (error) {
+                                console.error('Error initializing live stream:', error);
                             }
                         })();
                     </script>
