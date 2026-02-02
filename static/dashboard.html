@@ -347,24 +347,24 @@
                 const response = await fetch('/api/dashboard/summary');
                 const data = await response.json();
 
-                // Update stats
+                // Update stats with validation
                 document.getElementById('todayActivity').textContent =
-                    data.daily_summary.total_events || 0;
+                    data?.daily_summary?.total_events || 0;
                 document.getElementById('snapshotCount').textContent =
-                    data.snapshot_count || 0;
+                    data?.snapshot_count || 0;
                 document.getElementById('dbEvents').textContent =
-                    data.database_stats.total_events || 0;
+                    data?.database_stats?.total_events || 0;
                 document.getElementById('systemStatus').textContent = '✅';
                 document.getElementById('systemStatus').style.color = '#50fa7b';
 
                 // Load snapshots
-                loadSnapshots(data.recent_snapshots);
+                loadSnapshots(data?.recent_snapshots);
 
                 // Load hourly chart
-                loadHourlyChart(data.hourly_distribution);
+                loadHourlyChart(data?.hourly_distribution);
 
                 // Load zones
-                loadZones(data.zones);
+                loadZones(data?.zones);
 
             } catch (error) {
                 console.error('Error loading dashboard:', error);
@@ -386,8 +386,8 @@
             grid.innerHTML = '';
 
             snapshots.forEach(snapshot => {
-                const timestamp = new Date(snapshot.timestamp);
-                const detections = parseInt(snapshot.metadata?.detection_count, 10) || 0;
+                const timestamp = new Date(snapshot?.timestamp);
+                const detections = parseInt(snapshot?.metadata?.detection_count, 10) || 0;
                 const timeText = !isNaN(timestamp.getTime())
                     ? timestamp.toLocaleTimeString()
                     : 'Unknown time';
@@ -425,6 +425,10 @@
 
         function loadHourlyChart(hourlyData) {
             const ctx = document.getElementById('hourlyChart').getContext('2d');
+
+            if (!hourlyData || typeof hourlyData !== 'object') {
+                hourlyData = {};
+            }
 
             const hours = Object.keys(hourlyData).map(Number).sort((a, b) => a - b);
             const counts = hours.map(h => hourlyData[h]);
@@ -493,7 +497,7 @@
             zones.forEach(zone => {
                 let color = '[0, 255, 0]';
                 try {
-                    color = zone.color;
+                    color = zone?.color;
                     const rgb = JSON.parse(color);
                     color = `rgb(${rgb[2]}, ${rgb[1]}, ${rgb[0]})`; // BGR to RGB
                 } catch (e) {
