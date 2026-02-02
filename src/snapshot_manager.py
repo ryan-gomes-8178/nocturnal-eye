@@ -66,7 +66,7 @@ class SnapshotManager:
         
         # Generate filename
         timestamp = datetime.now()
-        filename = f"detection_{timestamp.strftime('%Y%m%d_%H%M%S')}.jpg"
+        filename = f"detection_{timestamp.strftime('%Y%m%d_%H%M%S_%f')}.jpg"
         filepath = self.snapshot_dir / filename
         
         # Save image
