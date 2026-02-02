@@ -65,8 +65,13 @@ api:
   cors_enabled: true
   debug: false
 snapshots:
-  save_interval: 3
-  max_snapshots: 500
+  # Save annotated snapshot every N seconds
+  save_interval: 10
+  
+  # Maximum number of snapshots to keep
+  max_snapshots: 200
+  
+  # JPEG quality (1-100)
   quality: 85
 heatmap:
   grid_size: 50

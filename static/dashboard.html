@@ -326,6 +326,28 @@
                         <source src="http://localhost:8090/nocturnal-eye/stream.m3u8" type="application/x-mpegURL">
                         Your browser does not support the video tag.
                     </video>
+                    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+                    <script>
+                        (function () {
+                            var video = document.getElementById('liveStream');
+                            var hlsSource = 'http://localhost:8090/nocturnal-eye/stream.m3u8';
+
+                            if (window.Hls && window.Hls.isSupported()) {
+                                var hls = new Hls();
+                                hls.loadSource(hlsSource);
+                                hls.attachMedia(video);
+                                hls.on(Hls.Events.MANIFEST_PARSED, function () {
+                                    if (video.autoplay) {
+                                        video.play().catch(function () {
+                                            // Autoplay may be blocked; ignore errors.
+                                        });
+                                    }
+                                });
+                            } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                                video.src = hlsSource;
+                            }
+                        })();
+                    </script>
                     <canvas id="zonesOverlay" 
                             style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;">
                     </canvas>
@@ -340,7 +362,7 @@
             <div class="card" style="grid-column: 1 / -1;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                     <h2>📸 Recent Detections</h2>
-                    <button class="refresh-btn" onclick="loadDashboard()">🔄 Refresh</button>
+                    <button class="refresh-btn" id="refreshBtn">🔄 Refresh</button>
                 </div>
                 <div class="snapshot-controls">
                     <div class="control-row">
@@ -377,7 +399,7 @@
     </div>
 
     <div class="modal" id="imageModal">
-        <span class="close-modal" onclick="closeModal()">&times;</span>
+        <span class="close-modal" id="closeModalBtn">&times;</span>
         <div class="modal-content">
             <img id="modalImage" src="" alt="Full size">
         </div>
@@ -396,24 +418,24 @@
                 const response = await fetch('/api/dashboard/summary');
                 const data = await response.json();
 
-                // Update stats
+                // Update stats with validation
                 document.getElementById('todayActivity').textContent =
-                    data.daily_summary.total_events || 0;
+                    data?.daily_summary?.total_events || 0;
                 document.getElementById('snapshotCount').textContent =
-                    data.snapshot_count || 0;
+                    data?.snapshot_count || 0;
                 document.getElementById('dbEvents').textContent =
-                    data.database_stats.total_events || 0;
+                    data?.database_stats?.total_events || 0;
                 document.getElementById('systemStatus').textContent = '✅';
                 document.getElementById('systemStatus').style.color = '#50fa7b';
 
                 // Load snapshots
-                await loadSnapshotPage();
+                loadSnapshots(data?.recent_snapshots);
 
                 // Load hourly chart
-                loadHourlyChart(data.hourly_distribution);
+                loadHourlyChart(data?.hourly_distribution);
 
                 // Load zones
-                loadZones(data.zones);
+                loadZones(data?.zones);
 
             } catch (error) {
                 console.error('Error loading dashboard:', error);
@@ -484,27 +506,59 @@
                 return;
             }
 
-            grid.innerHTML = snapshots.map(snapshot => {
-                const timestamp = new Date(snapshot.timestamp);
-                const detections = snapshot.metadata?.detection_count || 0;
+            // Clear existing content
+            grid.innerHTML = '';
+
+            snapshots.forEach(snapshot => {
+                const timestamp = new Date(snapshot?.timestamp);
+                const detections = parseInt(snapshot?.metadata?.detection_count, 10) || 0;
                 const timeText = !isNaN(timestamp.getTime())
                     ? timestamp.toLocaleTimeString()
                     : 'Unknown time';
 
-                return `
-                    <div class="snapshot" onclick="openModal('${snapshot.path}')">
-                        <img src="${snapshot.path}" alt="Detection snapshot" loading="lazy">
-                        <div class="snapshot-info">
-                            <div class="time">${timeText}</div>
-                            <div class="detections">${detections} detection(s)</div>
-                        </div>
-                    </div>
-                `;
-            }).join('');
+                const imagePath = snapshot?.path;
+                if (!imagePath) {
+                    // Skip this snapshot if no valid image path is available
+                    return;
+                }
+
+                // Create elements using DOM methods for safety
+                const snapshotDiv = document.createElement('div');
+                snapshotDiv.className = 'snapshot';
+                snapshotDiv.addEventListener('click', () => openModal(imagePath));
+
+                const img = document.createElement('img');
+                img.src = imagePath;
+                img.alt = 'Detection snapshot';
+                img.loading = 'lazy';
+
+                const infoDiv = document.createElement('div');
+                infoDiv.className = 'snapshot-info';
+
+                const timeDiv = document.createElement('div');
+                timeDiv.className = 'time';
+                timeDiv.textContent = timeText;
+
+                const detectionsDiv = document.createElement('div');
+                detectionsDiv.className = 'detections';
+                detectionsDiv.textContent = `${detections} detection(s)`;
+
+                infoDiv.appendChild(timeDiv);
+                infoDiv.appendChild(detectionsDiv);
+
+                snapshotDiv.appendChild(img);
+                snapshotDiv.appendChild(infoDiv);
+
+                grid.appendChild(snapshotDiv);
+            });
         }
 
         function loadHourlyChart(hourlyData) {
             const ctx = document.getElementById('hourlyChart').getContext('2d');
+
+            if (!hourlyData || typeof hourlyData !== 'object') {
+                hourlyData = {};
+            }
 
             const hours = Object.keys(hourlyData).map(Number).sort((a, b) => a - b);
             const counts = hours.map(h => hourlyData[h]);
@@ -567,24 +621,45 @@
                 return;
             }
 
-            list.innerHTML = zones.map(zone => {
+            // Clear existing content
+            list.innerHTML = '';
+
+            zones.forEach(zone => {
                 let color = '[0, 255, 0]';
                 try {
-                    color = zone.color;
+                    color = zone?.color;
                     const rgb = JSON.parse(color);
                     color = `rgb(${rgb[2]}, ${rgb[1]}, ${rgb[0]})`; // BGR to RGB
                 } catch (e) {
                     color = 'rgb(0, 255, 0)';
                 }
 
-                return `
-                    <div class="zone-item">
-                        <div class="zone-color" style="background-color: ${color}"></div>
-                        <div class="zone-name">${zone.name}</div>
-                        <div class="zone-coords">(${zone.x}, ${zone.y}) r=${zone.radius}</div>
-                    </div>
-                `;
-            }).join('');
+                // Create elements using DOM methods for safety
+                const zoneItem = document.createElement('div');
+                zoneItem.className = 'zone-item';
+
+                const zoneColorDiv = document.createElement('div');
+                zoneColorDiv.className = 'zone-color';
+                zoneColorDiv.style.backgroundColor = color;
+
+                const zoneNameDiv = document.createElement('div');
+                zoneNameDiv.className = 'zone-name';
+                zoneNameDiv.textContent = zone.name; // textContent auto-escapes
+
+                const zoneCoordsDiv = document.createElement('div');
+                zoneCoordsDiv.className = 'zone-coords';
+                // Ensure numeric values are treated as numbers
+                const x = parseFloat(zone.x) || 0;
+                const y = parseFloat(zone.y) || 0;
+                const radius = parseFloat(zone.radius) || 0;
+                zoneCoordsDiv.textContent = `(${x}, ${y}) r=${radius}`;
+
+                zoneItem.appendChild(zoneColorDiv);
+                zoneItem.appendChild(zoneNameDiv);
+                zoneItem.appendChild(zoneCoordsDiv);
+
+                list.appendChild(zoneItem);
+            });
         }
 
         function openModal(imagePath) {
@@ -639,6 +714,12 @@
         // Auto-refresh every 30 seconds
         setInterval(loadDashboard, 30000);
 
+        // Refresh button event listener
+        document.getElementById('refreshBtn').addEventListener('click', loadDashboard);
+
+        // Close modal button event listener
+        document.getElementById('closeModalBtn').addEventListener('click', closeModal);
+
         // Close modal on ESC key
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') closeModal();
@@ -690,12 +771,14 @@
                         // Draw circle outline
                         ctx.beginPath();
                         ctx.arc(scaledX, scaledY, scaledRadius, 0, 2 * Math.PI);
-                        ctx.strokeStyle = `rgb(${color[0]}, ${color[1]}, ${color[2]})`;
+                        // Convert BGR to RGB for canvas
+                        ctx.strokeStyle = `rgb(${color[2]}, ${color[1]}, ${color[0]})`;
                         ctx.lineWidth = 4;
                         ctx.stroke();
                         
                         // Draw label with better positioning
-                        ctx.fillStyle = `rgba(${color[0]}, ${color[1]}, ${color[2]}, 0.3)`;
+                        // Convert BGR to RGB for canvas
+                        ctx.fillStyle = `rgba(${color[2]}, ${color[1]}, ${color[0]}, 0.3)`;
                         ctx.font = 'bold 16px Arial';
                         const textMetrics = ctx.measureText(zone.name);
                         const textWidth = textMetrics.width;
@@ -707,7 +790,8 @@
                         ctx.fillRect(labelX - 5, labelY - 20, textWidth + 10, 22);
                         
                         // Draw label text
-                        ctx.fillStyle = `rgb(${color[0]}, ${color[1]}, ${color[2]})`;
+                        // Convert BGR to RGB for canvas
+                        ctx.fillStyle = `rgb(${color[2]}, ${color[1]}, ${color[0]})`;
                         ctx.fillText(zone.name, labelX, labelY - 3);
                     });
                     
@@ -715,15 +799,48 @@
                 }
                 
                 window.addEventListener('resize', resizeCanvas);
-                // Initial draw
-                setTimeout(resizeCanvas, 100);
+                
+                // Initial draw: wait for video metadata / data so dimensions are correct
+                const video = videoContainer ? videoContainer.querySelector('video') : null;
+                const triggerInitialResize = () => {
+                    // Use requestAnimationFrame to ensure layout is up to date
+                    if (typeof requestAnimationFrame === 'function') {
+                        requestAnimationFrame(resizeCanvas);
+                    } else {
+                        resizeCanvas();
+                    }
+                };
+
+                if (video) {
+                    if (video.readyState >= 1) {
+                        // Metadata already available
+                        triggerInitialResize();
+                    } else {
+                        const onVideoReady = () => {
+                            triggerInitialResize();
+                        };
+                        video.addEventListener('loadedmetadata', onVideoReady, { once: true });
+                        video.addEventListener('loadeddata', onVideoReady, { once: true });
+                    }
+                } else {
+                    // Fallback if no video element is found
+                    triggerInitialResize();
+                }
+
+                // Observe container size changes for more reliable resizing
+                if (window.ResizeObserver) {
+                    const zonesResizeObserver = new ResizeObserver(() => {
+                        resizeCanvas();
+                    });
+                    zonesResizeObserver.observe(videoContainer);
+                }
             } catch (e) {
                 console.error('Error loading zones:', e);
             }
         }
         
-        // Initialize when page loads
-        setTimeout(initZonesOverlay, 1000);
+        // Initialize when page loads (script is at end of body, so DOM is ready)
+        initZonesOverlay();
     </script>
 </body>
 

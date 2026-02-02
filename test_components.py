@@ -11,6 +11,7 @@ import logging
 import yaml
 import numpy as np
 import cv2
+import time
 from pathlib import Path
 from datetime import datetime, timedelta
 
@@ -22,9 +23,12 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 from src.database import Database
-from src.motion_detector import MotionDetector
+from src.motion_detector import MotionDetector, MotionEvent
 from src.tracker import ObjectTracker, ZoneAnalyzer
 from src.visualizer import HeatmapGenerator
+from src.snapshot_manager import SnapshotManager
+from src.notification_trigger import NotificationTrigger
+from unittest.mock import Mock, patch
 
 
 def test_database():
@@ -269,6 +273,322 @@ def test_zone_analyzer():
     return analyzer
 
 
+def test_snapshot_manager():
+    """Test snapshot manager functionality"""
+    logger.info("\n" + "="*60)
+    logger.info("Testing Snapshot Manager...")
+    logger.info("="*60)
+    
+    # Configuration for testing
+    config = {
+        'snapshots': {
+            'save_interval': 1,  # Short interval for testing
+            'max_snapshots': 5,  # Small number for testing cleanup
+            'quality': 85
+        }
+    }
+    
+    # Initialize snapshot manager
+    manager = SnapshotManager(config)
+    logger.info(f"✓ SnapshotManager initialized: interval={manager.save_interval}s, max={manager.max_snapshots}")
+    
+    # Create test frame
+    logger.info("✓ Creating test frame...")
+    frame = np.zeros((480, 640, 3), dtype=np.uint8)
+    cv2.circle(frame, (320, 240), 50, (255, 255, 255), -1)
+    
+    # Create test motion events
+    logger.info("✓ Creating test motion events...")
+    timestamp = datetime.now()
+    
+    motion_events = [
+        MotionEvent(
+            timestamp=timestamp,
+            centroid=(320, 240),
+            area=2500,
+            bounding_box=(270, 190, 100, 100),
+            confidence=0.9
+        ),
+        MotionEvent(
+            timestamp=timestamp,
+            centroid=(150, 120),
+            area=1800,
+            bounding_box=(120, 90, 60, 60),
+            confidence=0.75
+        )
+    ]
+    
+    # Test zones for annotation
+    zones = [
+        {'name': 'Test Zone', 'x': 320, 'y': 240, 'radius': 80, 'color': '[0, 255, 0]'}
+    ]
+    
+    # Test snapshot capture
+    logger.info("✓ Testing snapshot capture...")
+    snapshot_path = manager.save_snapshot(frame, motion_events, zones)
+    
+    if snapshot_path:
+        logger.info(f"  Snapshot saved to: {snapshot_path}")
+        assert snapshot_path.exists(), "Snapshot file should exist"
+        
+        # Check metadata file
+        metadata_path = snapshot_path.with_suffix('.jpg.json')
+        assert metadata_path.exists(), "Metadata file should exist"
+        logger.info(f"  Metadata saved to: {metadata_path}")
+    else:
+        logger.warning("  Snapshot not saved (interval not met or no motion)")
+    
+    # Test that second snapshot is blocked by interval
+    logger.info("✓ Testing save interval...")
+    snapshot_path2 = manager.save_snapshot(frame, motion_events, zones)
+    if snapshot_path2 is None:
+        logger.info("  ✓ Save interval correctly prevents duplicate snapshots")
+    
+    # Wait and test another snapshot
+    time.sleep(1.1)
+    logger.info("✓ Testing snapshot after interval...")
+    snapshot_path3 = manager.save_snapshot(frame, motion_events, zones)
+    if snapshot_path3:
+        logger.info(f"  ✓ Snapshot saved after interval: {snapshot_path3}")
+    
+    # Test get_recent_snapshots
+    logger.info("✓ Testing get_recent_snapshots...")
+    recent = manager.get_recent_snapshots(limit=10)
+    logger.info(f"  Found {len(recent)} recent snapshots")
+    for snap in recent:
+        logger.info(f"    - {snap['filename']}: {snap['metadata'].get('detection_count', 0)} detections")
+    
+    # Test snapshot count
+    count = manager.get_snapshot_count()
+    logger.info(f"✓ Total snapshots: {count}")
+    
+    # Test cleanup mechanism by creating more snapshots than max
+    logger.info("✓ Testing cleanup mechanism...")
+    logger.info(f"  Creating {manager.max_snapshots + 2} snapshots to test cleanup...")
+    
+    for i in range(manager.max_snapshots + 2):
+        time.sleep(1.1)  # Wait for interval
+        manager.save_snapshot(frame, motion_events, zones)
+    
+    final_count = manager.get_snapshot_count()
+    logger.info(f"  Final count: {final_count} (max: {manager.max_snapshots})")
+    assert final_count <= manager.max_snapshots, f"Cleanup should limit to {manager.max_snapshots} snapshots"
+    logger.info(f"  ✓ Cleanup working correctly")
+    
+    # Test annotation rendering
+    logger.info("✓ Testing annotation rendering...")
+    annotated = manager._annotate_frame(frame.copy(), motion_events, zones)
+    assert annotated is not None, "Annotated frame should not be None"
+    assert annotated.shape == frame.shape, "Annotated frame should have same shape as original"
+    logger.info("  ✓ Annotations rendered successfully")
+    
+    # Test metadata creation
+    logger.info("✓ Testing metadata creation...")
+    metadata = manager._create_metadata(timestamp, motion_events, "test.jpg")
+    assert metadata['filename'] == "test.jpg", "Filename should match"
+    assert metadata['detection_count'] == len(motion_events), "Detection count should match"
+    assert len(metadata['detections']) == len(motion_events), "Number of detections should match"
+    logger.info(f"  ✓ Metadata created: {metadata['detection_count']} detections")
+    
+    # Test empty motion events
+    logger.info("✓ Testing with empty motion events...")
+    time.sleep(1.1)
+    snapshot_empty = manager.save_snapshot(frame, [], zones)
+    assert snapshot_empty is None, "Should not save snapshot with no motion events"
+    logger.info("  ✓ Correctly skips saving when no motion detected")
+    
+    logger.info("✓ Snapshot Manager tests completed successfully")
+    
+    return manager
+
+
+def test_notification_trigger():
+    """Test notification trigger functionality"""
+    logger.info("\n" + "="*60)
+    logger.info("Testing Notification Trigger...")
+    logger.info("="*60)
+    
+    # Initialize notification trigger with short rate limit for testing
+    trigger = NotificationTrigger(
+        terrariumpi_url="http://test-server:8090",
+        rate_limit_seconds=2
+    )
+    logger.info(f"✓ NotificationTrigger initialized: rate_limit={trigger.rate_limit_seconds}s")
+    
+    # Test 1: Rate limiting behavior - should allow first notification
+    logger.info("✓ Testing rate limiting - first notification...")
+    assert trigger.should_notify() == True, "First notification should be allowed"
+    logger.info("  ✓ First notification allowed (no previous notification)")
+    
+    # Test 2: Simulate notification sent
+    logger.info("✓ Testing rate limiting - setting last notification time...")
+    trigger.last_notification_time = datetime.now()
+    assert trigger.should_notify() == False, "Should be rate limited immediately after notification"
+    logger.info("  ✓ Rate limiting active (notification just sent)")
+    
+    # Test 3: Wait for rate limit to expire
+    logger.info("✓ Testing rate limiting - waiting for rate limit to expire...")
+    time.sleep(2.1)  # Wait longer than rate_limit_seconds
+    assert trigger.should_notify() == True, "Should allow notification after rate limit expires"
+    logger.info("  ✓ Rate limiting expired, notification allowed")
+    
+    # Test 4: Successful notification sending
+    logger.info("✓ Testing successful notification sending...")
+    with patch('src.notification_trigger.requests.post') as mock_post:
+        # Mock successful response
+        mock_response = Mock()
+        mock_response.status_code = 200
+        mock_response.text = "OK"
+        mock_post.return_value = mock_response
+        
+        # Reset last notification time to allow sending
+        trigger.last_notification_time = None
+        
+        # Send notification with confidence and zone
+        result = trigger.send_gecko_detection_notification(confidence=0.85, zone="Feeding Zone")
+        
+        assert result == True, "Notification should be sent successfully"
+        assert trigger.last_notification_time is not None, "Last notification time should be set"
+        logger.info("  ✓ Notification sent successfully")
+        
+        # Verify the request was made correctly
+        assert mock_post.called, "POST request should be made"
+        call_args = mock_post.call_args
+        
+        # Check URL
+        expected_url = f"{trigger.terrariumpi_url}/api/notifications/message/{trigger.gecko_detection_message_id}/send"
+        assert call_args[0][0] == expected_url, f"URL should be {expected_url}"
+        logger.info(f"  ✓ Correct API endpoint called")
+        
+        # Check payload contains expected data
+        json_data = call_args[1]['json']
+        assert 'title' in json_data, "Payload should contain title"
+        assert 'message' in json_data, "Payload should contain message"
+        assert 'Feeding Zone' in json_data['message'], "Message should contain zone name"
+        assert '85.0%' in json_data['message'], "Message should contain confidence percentage"
+        logger.info(f"  ✓ Notification payload correct: {json_data['title']}")
+    
+    # Test 5: Notification without zone/confidence
+    logger.info("✓ Testing notification without zone/confidence...")
+    with patch('src.notification_trigger.requests.post') as mock_post:
+        mock_response = Mock()
+        mock_response.status_code = 200
+        mock_post.return_value = mock_response
+        
+        trigger.last_notification_time = None
+        result = trigger.send_gecko_detection_notification()
+        
+        assert result == True, "Notification should be sent successfully"
+        
+        json_data = mock_post.call_args[1]['json']
+        assert 'Zone:' not in json_data['message'], "Message should not contain zone when not provided"
+        assert 'Confidence:' not in json_data['message'], "Message should not contain confidence when not provided"
+        logger.info("  ✓ Notification sent without optional parameters")
+    
+    # Test 6: Rate limiting prevents duplicate notifications
+    logger.info("✓ Testing rate limiting prevents duplicate notifications...")
+    with patch('src.notification_trigger.requests.post') as mock_post:
+        mock_response = Mock()
+        mock_response.status_code = 200
+        mock_post.return_value = mock_response
+        
+        # First notification should succeed
+        trigger.last_notification_time = None
+        result1 = trigger.send_gecko_detection_notification(confidence=0.9, zone="Basking Zone")
+        assert result1 == True, "First notification should succeed"
+        
+        # Immediate second notification should be blocked by rate limit
+        result2 = trigger.send_gecko_detection_notification(confidence=0.9, zone="Basking Zone")
+        assert result2 == False, "Second notification should be blocked by rate limit"
+        
+        # Verify only one POST was made
+        assert mock_post.call_count == 1, "Only one POST request should be made"
+        logger.info("  ✓ Rate limiting correctly prevents duplicate notifications")
+    
+    # Test 7: HTTP error handling - 4xx response
+    logger.info("✓ Testing error handling - HTTP 404...")
+    with patch('src.notification_trigger.requests.post') as mock_post:
+        mock_response = Mock()
+        mock_response.status_code = 404
+        mock_response.text = "Not Found"
+        mock_post.return_value = mock_response
+        
+        trigger.last_notification_time = None
+        result = trigger.send_gecko_detection_notification(confidence=0.8)
+        
+        assert result == False, "Notification should fail with 404 response"
+        assert trigger.last_notification_time is None, "Last notification time should not be set on failure"
+        logger.info("  ✓ HTTP 404 error handled correctly")
+    
+    # Test 8: HTTP error handling - 5xx response
+    logger.info("✓ Testing error handling - HTTP 500...")
+    with patch('src.notification_trigger.requests.post') as mock_post:
+        mock_response = Mock()
+        mock_response.status_code = 500
+        mock_response.text = "Internal Server Error"
+        mock_post.return_value = mock_response
+        
+        trigger.last_notification_time = None
+        result = trigger.send_gecko_detection_notification()
+        
+        assert result == False, "Notification should fail with 500 response"
+        logger.info("  ✓ HTTP 500 error handled correctly")
+    
+    # Test 9: Network error handling - connection timeout
+    logger.info("✓ Testing error handling - connection timeout...")
+    with patch('src.notification_trigger.requests.post') as mock_post:
+        import requests
+        mock_post.side_effect = requests.exceptions.Timeout("Connection timeout")
+        
+        trigger.last_notification_time = None
+        result = trigger.send_gecko_detection_notification()
+        
+        assert result == False, "Notification should fail on timeout"
+        assert trigger.last_notification_time is None, "Last notification time should not be set on timeout"
+        logger.info("  ✓ Connection timeout handled correctly")
+    
+    # Test 10: Network error handling - connection error
+    logger.info("✓ Testing error handling - connection error...")
+    with patch('src.notification_trigger.requests.post') as mock_post:
+        import requests
+        mock_post.side_effect = requests.exceptions.ConnectionError("Connection refused")
+        
+        trigger.last_notification_time = None
+        result = trigger.send_gecko_detection_notification(zone="Hide Zone")
+        
+        assert result == False, "Notification should fail on connection error"
+        logger.info("  ✓ Connection error handled correctly")
+    
+    # Test 11: General exception handling
+    logger.info("✓ Testing error handling - general exception...")
+    with patch('src.notification_trigger.requests.post') as mock_post:
+        mock_post.side_effect = Exception("Unexpected error")
+        
+        trigger.last_notification_time = None
+        result = trigger.send_gecko_detection_notification()
+        
+        assert result == False, "Notification should fail on general exception"
+        logger.info("  ✓ General exception handled correctly")
+    
+    # Test 12: Multiple status codes (201, 204) should be treated as success
+    logger.info("✓ Testing multiple success status codes...")
+    for status_code in [200, 201, 204]:
+        with patch('src.notification_trigger.requests.post') as mock_post:
+            mock_response = Mock()
+            mock_response.status_code = status_code
+            mock_post.return_value = mock_response
+            
+            trigger.last_notification_time = None
+            result = trigger.send_gecko_detection_notification()
+            
+            assert result == True, f"Status code {status_code} should be treated as success"
+        logger.info(f"  ✓ Status code {status_code} handled as success")
+    
+    logger.info("✓ Notification Trigger tests completed successfully")
+    
+    return trigger
+
+
 def main():
     """Run all tests"""
     logger.info("\n")
@@ -282,6 +602,8 @@ def main():
         tracker = test_tracker()
         generator = test_heatmap_generator()
         analyzer = test_zone_analyzer()
+        test_snapshot_manager()
+        test_notification_trigger()
         
         # Summary
         logger.info("\n" + "="*60)
@@ -294,6 +616,8 @@ def main():
         logger.info("  ✓ Object Tracker: OK")
         logger.info("  ✓ Heatmap Generator: OK")
         logger.info("  ✓ Zone Analyzer: OK")
+        logger.info("  ✓ Snapshot Manager: OK")
+        logger.info("  ✓ Notification Trigger: OK")
         
         logger.info("\n🚀 Next Steps:")
         logger.info("  1. Connect your camera to TerrariumPI")

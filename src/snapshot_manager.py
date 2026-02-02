@@ -66,21 +66,39 @@ class SnapshotManager:
         
         # Generate filename
         timestamp = datetime.now()
-        filename = f"detection_{timestamp.strftime('%Y%m%d_%H%M%S')}.jpg"
+        filename = f"detection_{timestamp.strftime('%Y%m%d_%H%M%S_%f')}.jpg"
         filepath = self.snapshot_dir / filename
         
         # Save image
-        cv2.imwrite(
-            str(filepath),
-            annotated,
-            [cv2.IMWRITE_JPEG_QUALITY, self.quality]
-        )
+        try:
+            success = cv2.imwrite(
+                str(filepath),
+                annotated,
+                [cv2.IMWRITE_JPEG_QUALITY, self.quality]
+            )
+            if not success:
+                logger.error(f"Failed to write snapshot image to {filepath}")
+                return None
+        except Exception as e:
+            logger.error(f"Error saving snapshot image to {filepath}: {e}")
+            return None
         
         # Save metadata
-        metadata = self._create_metadata(timestamp, motion_events, filename)
-        metadata_path = self.snapshot_dir / f"{filename}.json"
-        with open(metadata_path, 'w') as f:
-            json.dump(metadata, f, indent=2, default=str)
+        try:
+            metadata = self._create_metadata(timestamp, motion_events, filename)
+            metadata_path = self.snapshot_dir / f"{filename}.json"
+            with open(metadata_path, 'w') as f:
+                json.dump(metadata, f, indent=2, default=str)
+        except Exception as e:
+            logger.error(f"Error saving snapshot metadata to {metadata_path}: {e}")
+            # Try to clean up the image file since metadata failed
+            try:
+                filepath.unlink()
+            except Exception as cleanup_error:
+                logger.warning(
+                    f"Failed to delete snapshot image {filepath} after metadata save error: {cleanup_error}"
+                )
+            return None
         
         self.last_snapshot_time = timestamp
         logger.info(f"📸 Snapshot saved: {filename}")
