@@ -198,7 +198,7 @@ class NocturnalEye:
                     if motion_events:
                         # Use the first motion event for notification
                         primary_event = motion_events[0]
-                        confidence = primary_event.confidence if hasattr(primary_event, 'confidence') else 0.0
+                        confidence = primary_event.confidence
                         
                         # Check which zone the motion is in
                         zone_name = None
