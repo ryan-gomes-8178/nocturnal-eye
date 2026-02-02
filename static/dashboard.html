@@ -645,15 +645,48 @@
                 }
                 
                 window.addEventListener('resize', resizeCanvas);
-                // Initial draw
-                setTimeout(resizeCanvas, 100);
+                
+                // Initial draw: wait for video metadata / data so dimensions are correct
+                const video = videoContainer ? videoContainer.querySelector('video') : null;
+                const triggerInitialResize = () => {
+                    // Use requestAnimationFrame to ensure layout is up to date
+                    if (typeof requestAnimationFrame === 'function') {
+                        requestAnimationFrame(resizeCanvas);
+                    } else {
+                        resizeCanvas();
+                    }
+                };
+
+                if (video) {
+                    if (video.readyState >= 1) {
+                        // Metadata already available
+                        triggerInitialResize();
+                    } else {
+                        const onVideoReady = () => {
+                            triggerInitialResize();
+                        };
+                        video.addEventListener('loadedmetadata', onVideoReady, { once: true });
+                        video.addEventListener('loadeddata', onVideoReady, { once: true });
+                    }
+                } else {
+                    // Fallback if no video element is found
+                    triggerInitialResize();
+                }
+
+                // Observe container size changes for more reliable resizing
+                if (window.ResizeObserver) {
+                    const zonesResizeObserver = new ResizeObserver(() => {
+                        resizeCanvas();
+                    });
+                    zonesResizeObserver.observe(videoContainer);
+                }
             } catch (e) {
                 console.error('Error loading zones:', e);
             }
         }
         
-        // Initialize when page loads
-        setTimeout(initZonesOverlay, 1000);
+        // Initialize when page loads (script is at end of body, so DOM is ready)
+        initZonesOverlay();
     </script>
 </body>
 
