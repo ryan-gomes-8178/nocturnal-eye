@@ -33,6 +33,15 @@ activity_viz = ActivityVisualizer(config)
 snapshot_mgr = SnapshotManager(config)
 
 
+def is_ipv6(host):
+    """Check if host is an IPv6 address"""
+    try:
+        addr = ipaddress.ip_address(host)
+        return isinstance(addr, ipaddress.IPv6Address)
+    except ValueError:
+        return False
+
+
 @app.route('/')
 def dashboard():
     """Serve the dashboard"""
@@ -360,14 +369,6 @@ def get_stream_config():
     """Get stream configuration"""
     from urllib.parse import urlparse, urlunparse, urlsplit
     
-    def is_ipv6(host):
-        """Check if host is an IPv6 address"""
-        try:
-            addr = ipaddress.ip_address(host)
-            return isinstance(addr, ipaddress.IPv6Address)
-        except ValueError:
-            return False
-    
     try:
         stream_config = config.get('stream', {})
         stream_url = (stream_config.get('url', '') or '').strip()
@@ -388,8 +389,8 @@ def get_stream_config():
             host = parsed_host.hostname if parsed_host and parsed_host.hostname else 'localhost'
             public_port = stream_config.get('public_port', 8090)
             public_path = stream_config.get('public_path', '/nocturnal-eye/stream.m3u8')
-            # Wrap IPv6 addresses in brackets for URL formatting
-            if is_ipv6(host):
+            # Wrap IPv6 addresses in brackets for URL formatting (if not already wrapped)
+            if is_ipv6(host) and not host.startswith('['):
                 host = f'[{host}]'
             stream_url = f"{proto}://{host}:{public_port}{public_path}"
         else:
@@ -402,8 +403,8 @@ def get_stream_config():
                 host = forwarded_host or parsed.hostname
                 # Preserve the original stream port if present, otherwise fall back to configured public_port
                 port = parsed.port or stream_config.get('public_port')
-                # Wrap IPv6 addresses in brackets for URL formatting
-                if host and is_ipv6(host):
+                # Wrap IPv6 addresses in brackets for URL formatting (if not already wrapped)
+                if host and is_ipv6(host) and not host.startswith('['):
                     host = f'[{host}]'
                 netloc = f"{host}:{port}" if port else host
                 # Preserve the original scheme for non-HTTP(S) URLs; only override with proto for HTTP/HTTPS
