@@ -376,10 +376,13 @@ def get_stream_config():
             parsed = urlparse(stream_url)
             if parsed.hostname in {'localhost', '127.0.0.1', '0.0.0.0'}:
                 host_header = request.headers.get('X-Forwarded-Host') or request.host
-                host = host_header or parsed.hostname
-                if ':' not in host and parsed.port:
-                    host = f"{host}:{parsed.port}"
-                stream_url = urlunparse((proto, host, parsed.path, '', parsed.query, ''))
+                # Use only the hostname portion from the forwarded host, discard any port
+                forwarded_host = host_header.split(':', 1)[0] if host_header else None
+                host = forwarded_host or parsed.hostname
+                # Preserve the original stream port if present, otherwise fall back to configured public_port
+                port = parsed.port or stream_config.get('public_port')
+                netloc = f"{host}:{port}" if port else host
+                stream_url = urlunparse((proto, netloc, parsed.path, '', parsed.query, ''))
 
         return jsonify({
             'url': stream_url,
