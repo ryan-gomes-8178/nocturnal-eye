@@ -374,8 +374,8 @@ def get_stream_config():
             not stream_url.startswith('rtsp://') and not stream_url.startswith('http')
         ):
             host_header = request.headers.get('X-Forwarded-Host') or request.host
-            # Use urlsplit with a fake scheme to safely extract hostname (handles IPv6)
-            parsed_host = urlsplit(f'http://{host_header}') if host_header else None
+            # Handle comma-separated list (multi-proxy) and IPv6 addresses
+            parsed_host = urlsplit('//' + host_header.split(',')[0].strip()) if host_header else None
             host = parsed_host.hostname if parsed_host and parsed_host.hostname else 'localhost'
             public_port = stream_config.get('public_port', 8090)
             public_path = stream_config.get('public_path', '/nocturnal-eye/stream.m3u8')
@@ -384,8 +384,8 @@ def get_stream_config():
             parsed = urlparse(stream_url)
             if parsed.hostname in {'localhost', '127.0.0.1', '0.0.0.0'}:
                 host_header = request.headers.get('X-Forwarded-Host') or request.host
-                # Use urlsplit with a fake scheme to safely extract hostname (handles IPv6)
-                parsed_host = urlsplit(f'http://{host_header}') if host_header else None
+                # Handle comma-separated list (multi-proxy) and IPv6 addresses
+                parsed_host = urlsplit('//' + host_header.split(',')[0].strip()) if host_header else None
                 forwarded_host = parsed_host.hostname if parsed_host and parsed_host.hostname else None
                 host = forwarded_host or parsed.hostname
                 # Preserve the original stream port if present, otherwise fall back to configured public_port
