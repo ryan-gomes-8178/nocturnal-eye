@@ -605,7 +605,13 @@
                     <div style="font-size: 1.2em; margin-bottom: 10px;">⚠️ Stream Unavailable</div>
                     <div style="font-size: 0.9em;">Unable to load stream configuration. Please check your settings.</div>
                 `;
-                video.parentElement.appendChild(errorDiv);
+                const container = video.parentElement;
+                if (container && window.getComputedStyle(container).position === 'static') {
+                    container.style.position = 'relative';
+                }
+                if (container) {
+                    container.appendChild(errorDiv);
+                }
             }
         }
 
