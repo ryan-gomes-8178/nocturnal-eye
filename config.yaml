@@ -109,7 +109,7 @@ api:
 # Snapshot Capture
 snapshots:
   # Save annotated snapshot every N seconds
-  save_interval: 5
+  save_interval: 30
   
   # Maximum number of snapshots to keep
   max_snapshots: 200
