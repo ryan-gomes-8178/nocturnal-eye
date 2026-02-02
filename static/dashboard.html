@@ -392,13 +392,19 @@
                     ? timestamp.toLocaleTimeString()
                     : 'Unknown time';
 
+                const imagePath = snapshot?.path;
+                if (!imagePath) {
+                    // Skip this snapshot if no valid image path is available
+                    return;
+                }
+
                 // Create elements using DOM methods for safety
                 const snapshotDiv = document.createElement('div');
                 snapshotDiv.className = 'snapshot';
-                snapshotDiv.addEventListener('click', () => openModal(snapshot.path));
+                snapshotDiv.addEventListener('click', () => openModal(imagePath));
 
                 const img = document.createElement('img');
-                img.src = snapshot.path;
+                img.src = imagePath;
                 img.alt = 'Detection snapshot';
                 img.loading = 'lazy';
 
