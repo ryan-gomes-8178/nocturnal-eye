@@ -214,6 +214,22 @@
             transform: translateY(-2px);
         }
 
+        .stream-error-overlay {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            color: #ff6b6b;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 20px;
+            flex-direction: column;
+        }
+
         .modal {
             display: none;
             position: fixed;
@@ -293,7 +309,7 @@
                            controls>
                         Your browser does not support the video tag.
                     </video>
-                    <div id="streamError" style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); color: #ff6b6b; align-items: center; justify-content: center; text-align: center; padding: 20px; flex-direction: column;">
+                    <div id="streamError" class="stream-error-overlay">
                         <div style="font-size: 48px; margin-bottom: 10px;">⚠️</div>
                         <div id="streamErrorMessage" style="font-size: 18px; font-weight: bold;"></div>
                     </div>
@@ -330,14 +346,14 @@
                                     const hls = new Hls();
                                     hls.loadSource(hlsSource);
                                     hls.attachMedia(video);
-                                    hls.on(Hls.Events.MANIFEST_PARSED, function () {
+                                    hls.on(Hls.Events.MANIFEST_PARSED, () => {
                                         if (video.autoplay) {
-                                            video.play().catch(function () {
+                                            video.play().catch(() => {
                                                 // Autoplay may be blocked; ignore errors.
                                             });
                                         }
                                     });
-                                    hls.on(Hls.Events.ERROR, function (event, data) {
+                                    hls.on(Hls.Events.ERROR, (event, data) => {
                                         if (data.fatal) {
                                             const errorType = data.type || 'unknown';
                                             const errorDetails = data.details || 'no details';
@@ -346,7 +362,7 @@
                                     });
                                 } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
                                     video.src = hlsSource;
-                                    video.onerror = function() {
+                                    video.onerror = () => {
                                         showError('Stream playback error. Please check stream URL and connection.');
                                     };
                                 }
