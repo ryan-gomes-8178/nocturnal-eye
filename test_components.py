@@ -603,7 +603,7 @@ def main():
         generator = test_heatmap_generator()
         analyzer = test_zone_analyzer()
         test_snapshot_manager()
-        notification = test_notification_trigger()
+        test_notification_trigger()
         
         # Summary
         logger.info("\n" + "="*60)
