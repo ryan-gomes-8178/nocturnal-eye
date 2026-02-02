@@ -389,7 +389,11 @@ def get_stream_config():
                 # Preserve the original stream port if present, otherwise fall back to configured public_port
                 port = parsed.port or stream_config.get('public_port')
                 netloc = f"{host}:{port}" if port else host
-                stream_url = urlunparse((proto, netloc, parsed.path, '', parsed.query, ''))
+                # Preserve the original scheme for non-HTTP(S) URLs; only override with proto for HTTP/HTTPS
+                scheme = parsed.scheme
+                if scheme and scheme.lower() in {'http', 'https'}:
+                    scheme = proto
+                stream_url = urlunparse((scheme, netloc, parsed.path, '', parsed.query, ''))
 
         return jsonify({
             'url': stream_url,
