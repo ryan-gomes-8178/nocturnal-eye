@@ -620,12 +620,14 @@
                         // Draw circle outline
                         ctx.beginPath();
                         ctx.arc(scaledX, scaledY, scaledRadius, 0, 2 * Math.PI);
-                        ctx.strokeStyle = `rgb(${color[0]}, ${color[1]}, ${color[2]})`;
+                        // Convert BGR to RGB for canvas
+                        ctx.strokeStyle = `rgb(${color[2]}, ${color[1]}, ${color[0]})`;
                         ctx.lineWidth = 4;
                         ctx.stroke();
                         
                         // Draw label with better positioning
-                        ctx.fillStyle = `rgba(${color[0]}, ${color[1]}, ${color[2]}, 0.3)`;
+                        // Convert BGR to RGB for canvas
+                        ctx.fillStyle = `rgba(${color[2]}, ${color[1]}, ${color[0]}, 0.3)`;
                         ctx.font = 'bold 16px Arial';
                         const textMetrics = ctx.measureText(zone.name);
                         const textWidth = textMetrics.width;
@@ -637,7 +639,8 @@
                         ctx.fillRect(labelX - 5, labelY - 20, textWidth + 10, 22);
                         
                         // Draw label text
-                        ctx.fillStyle = `rgb(${color[0]}, ${color[1]}, ${color[2]})`;
+                        // Convert BGR to RGB for canvas
+                        ctx.fillStyle = `rgb(${color[2]}, ${color[1]}, ${color[0]})`;
                         ctx.fillText(zone.name, labelX, labelY - 3);
                     });
                     
