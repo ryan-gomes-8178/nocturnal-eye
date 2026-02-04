@@ -4,7 +4,7 @@ Helps reduce false positives from daytime interference by filtering publications
 """
 
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Dict, Tuple, Optional
 
 logger = logging.getLogger(__name__)
@@ -144,6 +144,11 @@ class DetectionFilter:
         # Calculate next active period
         current_datetime = timestamp.replace(second=0, microsecond=0)
         start_time = current_datetime.replace(hour=self.start_hour, minute=self.start_minute)
+        end_time = current_datetime.replace(hour=self.end_hour, minute=self.end_minute)
+        
+        # If end_time is before start_time on same day, move it to next day
+        if end_time < start_time:
+            end_time = end_time + timedelta(days=1)
         
         current_minutes = current_datetime.hour * 60 + current_datetime.minute
         start_minutes = self.start_hour * 60 + self.start_minute
@@ -151,11 +156,15 @@ class DetectionFilter:
         
         if start_minutes > end_minutes:
             # Night mode (wraps around midnight)
-            if current_minutes >= start_minutes or current_minutes < end_minutes:
-                # Currently active (after start or before end)
-                return current_datetime
+            if current_minutes >= start_minutes:
+                # We're past start time today (22:00+), next active is tomorrow
+                next_day = (current_datetime + timedelta(days=1)).replace(
+                    hour=self.start_hour,
+                    minute=self.start_minute
+                )
+                return next_day
             else:
-                # Between end and start (inactive daytime), next active is tonight at start_time
+                # Before start time today, next active is tonight at start_time
                 return current_datetime.replace(hour=self.start_hour, minute=self.start_minute)
         else:
             # Day mode
@@ -170,5 +179,5 @@ class DetectionFilter:
                 )
                 if next_active <= current_datetime:
                     # Add 1 day
-                    next_active = next_active.replace(day=next_active.day + 1)
+                    next_active = next_active + timedelta(days=1)
                 return next_active

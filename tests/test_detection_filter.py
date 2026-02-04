@@ -245,6 +245,118 @@ class TestDetectionFilterEdgeCases:
         # Should not raise exception
         result = df.should_publish_detection(None)
         assert isinstance(result, bool)
+    
+    def test_month_boundary_jan_31(self):
+        """Test that date arithmetic works correctly at end of January"""
+        config = {
+            'detection_publishing': {
+                'enabled': True,
+                'active_hours': {
+                    'start': '22:00',
+                    'end': '06:00'
+                }
+            },
+            'schedule': {'timezone': 'America/New_York'}
+        }
+        df = DetectionFilter(config)
+        
+        # Jan 31 at noon - next active should be Jan 31 at 10 PM (same day)
+        jan_31_noon = datetime(2026, 1, 31, 12, 0, 0)
+        next_active = df.get_next_active_time(jan_31_noon)
+        assert next_active.month == 1
+        assert next_active.day == 31
+        assert next_active.hour == 22
+        
+        # Jan 31 at 11 PM (active) - next active should be Feb 1 at 10 PM
+        jan_31_night = datetime(2026, 1, 31, 23, 0, 0)
+        next_active = df.get_next_active_time(jan_31_night)
+        # Should not raise ValueError and should correctly advance to February
+        assert next_active.month == 2
+        assert next_active.day == 1
+        assert next_active.hour == 22
+    
+    def test_month_boundary_feb_28(self):
+        """Test that date arithmetic works correctly at end of February (non-leap year)"""
+        config = {
+            'detection_publishing': {
+                'enabled': True,
+                'active_hours': {
+                    'start': '22:00',
+                    'end': '06:00'
+                }
+            },
+            'schedule': {'timezone': 'America/New_York'}
+        }
+        df = DetectionFilter(config)
+        
+        # Feb 28, 2026 at noon - next active should be Feb 28 at 10 PM (same day)
+        feb_28_noon = datetime(2026, 2, 28, 12, 0, 0)
+        next_active = df.get_next_active_time(feb_28_noon)
+        assert next_active.month == 2
+        assert next_active.day == 28
+        assert next_active.hour == 22
+        
+        # Feb 28, 2026 at 11 PM (active) - next active should be Mar 1 at 10 PM
+        feb_28_night = datetime(2026, 2, 28, 23, 0, 0)
+        next_active = df.get_next_active_time(feb_28_night)
+        # Should not raise ValueError and should correctly advance to March
+        assert next_active.month == 3
+        assert next_active.day == 1
+        assert next_active.hour == 22
+    
+    def test_year_boundary_dec_31(self):
+        """Test that date arithmetic works correctly at end of year"""
+        config = {
+            'detection_publishing': {
+                'enabled': True,
+                'active_hours': {
+                    'start': '22:00',
+                    'end': '06:00'
+                }
+            },
+            'schedule': {'timezone': 'America/New_York'}
+        }
+        df = DetectionFilter(config)
+        
+        # Dec 31 at noon - next active should be Dec 31 at 10 PM (same day)
+        dec_31_noon = datetime(2026, 12, 31, 12, 0, 0)
+        next_active = df.get_next_active_time(dec_31_noon)
+        assert next_active.year == 2026
+        assert next_active.month == 12
+        assert next_active.day == 31
+        assert next_active.hour == 22
+        
+        # Dec 31 at 11 PM (active) - next active should be Jan 1, 2027 at 10 PM
+        dec_31_night = datetime(2026, 12, 31, 23, 0, 0)
+        next_active = df.get_next_active_time(dec_31_night)
+        # Should not raise ValueError and should correctly advance to next year
+        assert next_active.year == 2027
+        assert next_active.month == 1
+        assert next_active.day == 1
+        assert next_active.hour == 22
+    
+    def test_leap_year_feb_29(self):
+        """Test that date arithmetic works correctly on leap year Feb 29"""
+        config = {
+            'detection_publishing': {
+                'enabled': True,
+                'active_hours': {
+                    'start': '22:00',
+                    'end': '06:00'
+                }
+            },
+            'schedule': {'timezone': 'America/New_York'}
+        }
+        df = DetectionFilter(config)
+        
+        # Feb 29, 2024 (leap year) at 11 PM - next active should be Mar 1 at 10 PM
+        feb_29_night = datetime(2024, 2, 29, 23, 0, 0)
+        next_active = df.get_next_active_time(feb_29_night)
+        # Should correctly advance to March
+        assert next_active.year == 2024
+        assert next_active.month == 3
+        assert next_active.day == 1
+        assert next_active.hour == 22
 
 
 if __name__ == '__main__':
