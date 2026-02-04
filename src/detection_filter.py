@@ -54,6 +54,10 @@ class DetectionFilter:
             parts = time_str.split(':')
             hour = int(parts[0])
             minute = int(parts[1]) if len(parts) > 1 else 0
+            if not (0 <= hour <= 23 and 0 <= minute <= 59):
+                raise ValueError(
+                    f"Time components out of range in '{time_str}': hour={hour}, minute={minute}"
+                )
             return hour, minute
         except (ValueError, IndexError) as e:
             logger.warning(f"Failed to parse time '{time_str}': {e}. Using default 22:00")
