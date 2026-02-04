@@ -150,7 +150,6 @@ class TestDetectionFilter:
     
     def test_multiple_time_formats(self, config_night_mode):
         """Test various time formats are parsed correctly"""
-        df = DetectionFilter(config_night_mode)
         
         # Test without minutes
         config = {
