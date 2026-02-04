@@ -249,6 +249,28 @@ class TestDetectionFilterEdgeCases:
         assert window['start'] == '22:00'
         assert window['end'] == '22:00'
     
+    def test_invalid_time_ranges(self):
+        """Test that invalid time ranges fall back correctly"""
+        config = {
+            'detection_publishing': {
+                'enabled': True,
+                'active_hours': {
+                    'start': '25:70',  # Invalid hour and minute
+                    'end': '12:99'     # Invalid minute
+                }
+            },
+            'schedule': {'timezone': 'America/New_York'}
+        }
+        df = DetectionFilter(config)
+        
+        # Both should fallback to 22:00 due to invalid ranges
+        assert df.start_hour == 22
+        assert df.start_minute == 0
+        assert df.start_time_str == '22:00'
+        assert df.end_hour == 22
+        assert df.end_minute == 0
+        assert df.end_time_str == '22:00'
+    
     def test_none_timestamp_uses_current_time(self):
         """Test that None timestamp uses current time"""
         config = {

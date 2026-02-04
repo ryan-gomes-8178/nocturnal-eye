@@ -54,6 +54,11 @@ class DetectionFilter:
             parts = time_str.split(':')
             hour = int(parts[0])
             minute = int(parts[1]) if len(parts) > 1 else 0
+            
+            # Validate hour and minute ranges
+            if not (0 <= hour <= 23 and 0 <= minute <= 59):
+                raise ValueError(f"Invalid time values: hour={hour}, minute={minute}")
+            
             # Return normalized string format
             return hour, minute, f"{hour:02d}:{minute:02d}"
         except (ValueError, IndexError) as e:
