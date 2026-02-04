@@ -117,6 +117,48 @@ def get_activity_range():
         return jsonify({'error': str(e)}), 500
 
 
+@app.route('/api/activity/histogram', methods=['GET'])
+def get_activity_histogram():
+    """Get activity histogram for a time range with bucketed intervals"""
+    try:
+        start_str = request.args.get('start')
+        end_str = request.args.get('end')
+        bucket_minutes_param = request.args.get('bucket_minutes', '60')
+
+        if not start_str or not end_str:
+            return jsonify({'error': 'Missing start or end parameter'}), 400
+
+        try:
+            bucket_minutes = int(bucket_minutes_param)
+        except (TypeError, ValueError):
+            return jsonify({'error': 'Invalid bucket_minutes parameter'}), 400
+
+        if bucket_minutes <= 0:
+            return jsonify({'error': 'bucket_minutes must be greater than 0'}), 400
+
+        start_date = datetime.fromisoformat(start_str)
+        end_date = datetime.fromisoformat(end_str)
+
+        if end_date <= start_date:
+            return jsonify({'error': 'End time must be after start time'}), 400
+
+        buckets = db.get_activity_histogram(start_date, end_date, bucket_minutes=bucket_minutes)
+        total_events = sum(bucket['count'] for bucket in buckets)
+
+        return jsonify({
+            'start': start_str,
+            'end': end_str,
+            'bucket_minutes': bucket_minutes,
+            'total_events': total_events,
+            'buckets': buckets,
+        })
+    except ValueError as e:
+        return jsonify({'error': f'Invalid date format: {e}'}), 400
+    except Exception as e:
+        logger.error(f"Error getting activity histogram: {e}")
+        return jsonify({'error': str(e)}), 500
+
+
 @app.route('/api/events/latest', methods=['GET'])
 def get_latest_events():
     """Get the most recent motion events"""

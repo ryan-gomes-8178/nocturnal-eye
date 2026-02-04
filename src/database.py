@@ -290,6 +290,54 @@ class Database:
             
             # Fill in missing hours with 0
             return {hour: hourly_data.get(hour, 0) for hour in range(24)}
+
+    def get_activity_histogram(
+        self,
+        start_date: datetime,
+        end_date: datetime,
+        bucket_minutes: int = 60,
+    ) -> List[Dict]:
+        """
+        Get activity histogram for an arbitrary date range.
+
+        Args:
+            start_date: Start datetime for range
+            end_date: End datetime for range
+            bucket_minutes: Bucket size in minutes
+
+        Returns:
+            List of buckets with start/end and counts
+        """
+        if bucket_minutes <= 0:
+            bucket_minutes = 60
+
+        events = self.get_events_by_range(start_date, end_date)
+        bucket_seconds = bucket_minutes * 60
+        total_seconds = max(int((end_date - start_date).total_seconds()), 0)
+        bucket_count = max(int(total_seconds // bucket_seconds) + 1, 1)
+
+        buckets = [
+            {
+                'start': (start_date + timedelta(seconds=i * bucket_seconds)).isoformat(),
+                'end': (start_date + timedelta(seconds=(i + 1) * bucket_seconds)).isoformat(),
+                'count': 0,
+            }
+            for i in range(bucket_count)
+        ]
+
+        for event in events:
+            event_time = event['timestamp']
+            if isinstance(event_time, str):
+                event_time = datetime.fromisoformat(event_time)
+            delta_seconds = (event_time - start_date).total_seconds()
+            if delta_seconds < 0:
+                continue
+            index = int(delta_seconds // bucket_seconds)
+            if index >= bucket_count:
+                continue
+            buckets[index]['count'] += 1
+
+        return buckets
     
     def get_heatmap_data(self, date: datetime, grid_size: int = 50) -> List[Tuple[int, int, int]]:
         """
