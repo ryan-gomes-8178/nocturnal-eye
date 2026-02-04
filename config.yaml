@@ -77,6 +77,20 @@ schedule:
   # Time zone
   timezone: "America/New_York"
 
+# Detection Publishing Windows
+# Controls when detections are published to TerrariumPI monitoring
+# Helps reduce false positives from daytime interference like shadows/reflections
+detection_publishing:
+  enabled: true
+  # Only publish detections during these hours (24-hour format)
+  active_hours:
+    start: "22:00"  # 10 PM
+    end: "06:00"    # 6 AM
+  # Optional: Future improvement - sync with light controller schedules
+  # sync_with_lights:
+  #   - name: "jungle_dawn"
+  #   - name: "uvb_light"
+
 # Database
 database:
   path: data/gecko_activity.db
