@@ -51,16 +51,18 @@ class TestDetectionFilter:
     def test_parse_time_valid(self, config_night_mode):
         """Test time parsing with valid input"""
         df = DetectionFilter(config_night_mode)
-        hour, minute = df._parse_time('14:30')
+        hour, minute, normalized_str = df._parse_time('14:30')
         assert hour == 14
         assert minute == 30
+        assert normalized_str == '14:30'
     
     def test_parse_time_midnight(self, config_night_mode):
         """Test time parsing for midnight"""
         df = DetectionFilter(config_night_mode)
-        hour, minute = df._parse_time('00:00')
+        hour, minute, normalized_str = df._parse_time('00:00')
         assert hour == 0
         assert minute == 0
+        assert normalized_str == '00:00'
     
     def test_should_publish_when_disabled(self, config_disabled):
         """Test that publishing is always allowed when filtering is disabled"""
@@ -225,6 +227,27 @@ class TestDetectionFilterEdgeCases:
         # Should fallback to 22:00
         assert df.start_hour == 22
         assert df.start_minute == 0
+        # The string should also be normalized to reflect the fallback
+        assert df.start_time_str == '22:00'
+    
+    def test_invalid_time_string_in_get_active_window(self):
+        """Test that get_active_window returns normalized strings even when input is invalid"""
+        config = {
+            'detection_publishing': {
+                'enabled': True,
+                'active_hours': {
+                    'start': 'bad_input',
+                    'end': 'also_bad'
+                }
+            },
+            'schedule': {'timezone': 'America/New_York'}
+        }
+        df = DetectionFilter(config)
+        window = df.get_active_window()
+        
+        # Both should fallback to normalized string "22:00"
+        assert window['start'] == '22:00'
+        assert window['end'] == '22:00'
     
     def test_none_timestamp_uses_current_time(self):
         """Test that None timestamp uses current time"""

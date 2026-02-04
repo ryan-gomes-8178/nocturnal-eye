@@ -26,12 +26,12 @@ class DetectionFilter:
         
         # Parse active hours
         active_hours = pub_config.get('active_hours', {})
-        self.start_time_str = active_hours.get('start', '22:00')  # 10 PM default
-        self.end_time_str = active_hours.get('end', '06:00')      # 6 AM default
+        start_time_input = active_hours.get('start', '22:00')  # 10 PM default
+        end_time_input = active_hours.get('end', '06:00')      # 6 AM default
         
-        # Parse time strings (HH:MM format)
-        self.start_hour, self.start_minute = self._parse_time(self.start_time_str)
-        self.end_hour, self.end_minute = self._parse_time(self.end_time_str)
+        # Parse time strings (HH:MM format) and get normalized strings
+        self.start_hour, self.start_minute, self.start_time_str = self._parse_time(start_time_input)
+        self.end_hour, self.end_minute, self.end_time_str = self._parse_time(end_time_input)
         
         self.timezone = config.get('schedule', {}).get('timezone', 'America/New_York')
         
@@ -40,7 +40,7 @@ class DetectionFilter:
             f"active_hours={self.start_time_str}-{self.end_time_str}"
         )
     
-    def _parse_time(self, time_str: str) -> Tuple[int, int]:
+    def _parse_time(self, time_str: str) -> Tuple[int, int, str]:
         """
         Parse time string in HH:MM format
         
@@ -48,16 +48,17 @@ class DetectionFilter:
             time_str: Time string like "22:00" or "06:00"
             
         Returns:
-            Tuple of (hour, minute)
+            Tuple of (hour, minute, normalized_string)
         """
         try:
             parts = time_str.split(':')
             hour = int(parts[0])
             minute = int(parts[1]) if len(parts) > 1 else 0
-            return hour, minute
+            # Return normalized string format
+            return hour, minute, f"{hour:02d}:{minute:02d}"
         except (ValueError, IndexError) as e:
             logger.warning(f"Failed to parse time '{time_str}': {e}. Using default 22:00")
-            return 22, 0
+            return 22, 0, "22:00"
     
     def should_publish_detection(self, timestamp: Optional[datetime] = None) -> bool:
         """
