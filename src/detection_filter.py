@@ -158,17 +158,15 @@ class DetectionFilter:
         
         if start_minutes > end_minutes:
             # Night mode (wraps around midnight)
-            if current_minutes < start_minutes and current_minutes < end_minutes:
-                # Before start time (before 22:00), next active is tonight at start_time
-                return current_datetime.replace(hour=self.start_hour, minute=self.start_minute)
+            # Check if currently active
+            is_active = current_minutes >= start_minutes or current_minutes < end_minutes
+            
+            if is_active:
+                # Already in active window, return current time
+                return current_datetime
             else:
-                # After end time, next active is next night
-                next_day = current_datetime.replace(
-                    day=current_datetime.day + 1,
-                    hour=self.start_hour,
-                    minute=self.start_minute
-                )
-                return next_day
+                # Not active, return today at start_time
+                return current_datetime.replace(hour=self.start_hour, minute=self.start_minute)
         else:
             # Day mode
             if current_minutes >= start_minutes and current_minutes < end_minutes:
