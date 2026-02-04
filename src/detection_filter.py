@@ -144,12 +144,6 @@ class DetectionFilter:
         # Calculate next active period
         current_datetime = timestamp.replace(second=0, microsecond=0)
         start_time = current_datetime.replace(hour=self.start_hour, minute=self.start_minute)
-        end_time = current_datetime.replace(hour=self.end_hour, minute=self.end_minute)
-        
-        # If end_time is before start_time on same day, move it to next day
-        if end_time < start_time:
-            end_time = end_time.replace(day=end_time.day + 1) if end_time.day < 28 else \
-                      end_time.replace(day=1, month=end_time.month + 1 if end_time.month < 12 else 1)
         
         current_minutes = current_datetime.hour * 60 + current_datetime.minute
         start_minutes = self.start_hour * 60 + self.start_minute
