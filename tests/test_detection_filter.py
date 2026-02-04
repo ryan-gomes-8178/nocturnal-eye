@@ -4,7 +4,7 @@ Tests time-based filtering logic for gecko activity detection windows
 """
 
 import pytest
-from datetime import datetime, time
+from datetime import datetime
 from src.detection_filter import DetectionFilter
 
 
@@ -136,8 +136,9 @@ class TestDetectionFilter:
         test_time = datetime(2026, 2, 3, 2, 0, 0)  # 2 AM (active)
         next_active = df.get_next_active_time(test_time)
         
-        # When active, should return current time or future active start
-        assert next_active >= test_time or next_active.hour == 22
+        # When active, should return current time truncated to minutes
+        expected = test_time.replace(second=0, microsecond=0)
+        assert next_active == expected, f"Expected {expected}, got {next_active}"
     
     def test_get_next_active_time_during_inactive(self, config_night_mode):
         """Test next active time calculation when currently inactive"""
@@ -145,12 +146,13 @@ class TestDetectionFilter:
         test_time = datetime(2026, 2, 3, 12, 0, 0)  # Noon (inactive)
         next_active = df.get_next_active_time(test_time)
         
-        # Next active should be at 10 PM (could be same day or next depending on current time)
-        assert next_active.hour == 22
+        # Next active should be at 10 PM same day (before start time, so same day)
+        expected = test_time.replace(hour=22, minute=0, second=0, microsecond=0)
+        assert next_active == expected, f"Expected {expected}, got {next_active}"
+        assert next_active.day == test_time.day, "Should return same day, not next day"
     
     def test_multiple_time_formats(self, config_night_mode):
         """Test various time formats are parsed correctly"""
-        df = DetectionFilter(config_night_mode)
         
         # Test without minutes
         config = {

@@ -54,6 +54,10 @@ class DetectionFilter:
             parts = time_str.split(':')
             hour = int(parts[0])
             minute = int(parts[1]) if len(parts) > 1 else 0
+            if not (0 <= hour <= 23 and 0 <= minute <= 59):
+                raise ValueError(
+                    f"Time components out of range in '{time_str}': hour={hour}, minute={minute}"
+                )
             return hour, minute
         except (ValueError, IndexError) as e:
             logger.warning(f"Failed to parse time '{time_str}': {e}. Using default 22:00")
@@ -138,7 +142,6 @@ class DetectionFilter:
             timestamp = datetime.now()
         
         # Calculate next active period
-        current_time = timestamp.time()
         current_datetime = timestamp.replace(second=0, microsecond=0)
         start_time = current_datetime.replace(hour=self.start_hour, minute=self.start_minute)
         end_time = current_datetime.replace(hour=self.end_hour, minute=self.end_minute)
