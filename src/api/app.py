@@ -13,6 +13,7 @@ import ipaddress
 from src.database import Database
 from src.visualizer import HeatmapGenerator, ActivityVisualizer
 from src.snapshot_manager import SnapshotManager
+from src.detection_filter import DetectionFilter
 
 logger = logging.getLogger(__name__)
 
@@ -31,6 +32,7 @@ db = Database(config)
 heatmap_gen = HeatmapGenerator(config)
 activity_viz = ActivityVisualizer(config)
 snapshot_mgr = SnapshotManager(config)
+detection_filter = DetectionFilter(config)
 
 
 def is_ipv6(host):
@@ -252,6 +254,27 @@ def cleanup_database():
         })
     except Exception as e:
         logger.error(f"Error cleaning database: {e}")
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/config/detection-filter', methods=['GET'])
+def get_detection_filter_config():
+    """Get detection filter configuration and status"""
+    try:
+        active_window = detection_filter.get_active_window()
+        next_active = detection_filter.get_next_active_time()
+        is_active = detection_filter.should_publish_detection()
+        
+        return jsonify({
+            'config': active_window,
+            'current_status': {
+                'is_active': is_active,
+                'current_time': datetime.now().isoformat(),
+                'next_active_time': next_active.isoformat()
+            }
+        })
+    except Exception as e:
+        logger.error(f"Error getting detection filter config: {e}")
         return jsonify({'error': str(e)}), 500
 
 

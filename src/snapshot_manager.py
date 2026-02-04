@@ -10,6 +10,8 @@ from datetime import datetime
 from typing import List, Optional, Dict
 import json
 
+from src.detection_filter import DetectionFilter
+
 logger = logging.getLogger(__name__)
 
 
@@ -26,9 +28,15 @@ class SnapshotManager:
         self.max_snapshots = config.get('snapshots', {}).get('max_snapshots', 100)
         self.quality = config.get('snapshots', {}).get('quality', 85)
         
+        # Initialize detection filter for publication control
+        self.detection_filter = DetectionFilter(config)
+        
         self.last_snapshot_time = None
         
-        logger.info(f"SnapshotManager initialized: interval={self.save_interval}s, max={self.max_snapshots}")
+        logger.info(
+            f"SnapshotManager initialized: interval={self.save_interval}s, "
+            f"max={self.max_snapshots}, detection_filtering={self.detection_filter.enabled}"
+        )
     
     def should_save_snapshot(self) -> bool:
         """Determine if a new snapshot should be saved"""
@@ -282,6 +290,21 @@ class SnapshotManager:
 
         paged = snapshots[offset:offset + limit]
         return [self._snapshot_to_dict(snap) for snap in paged]
+    
+    def should_publish_snapshot(self, snapshot_timestamp: datetime) -> bool:
+        """
+        Check if a snapshot should be published based on detection time filtering
+        
+        This provides server-side filtering to prevent false positives from being
+        sent to TerrariumPI monitoring when gecko is unlikely to be active.
+        
+        Args:
+            snapshot_timestamp: Datetime of the snapshot
+            
+        Returns:
+            True if snapshot should be published, False otherwise
+        """
+        return self.detection_filter.should_publish_detection(snapshot_timestamp)
 
     def get_snapshots_in_range(
         self,
