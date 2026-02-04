@@ -4,7 +4,7 @@ Tests time-based filtering logic for gecko activity detection windows
 """
 
 import pytest
-from datetime import datetime, time
+from datetime import datetime
 from src.detection_filter import DetectionFilter
 
 
