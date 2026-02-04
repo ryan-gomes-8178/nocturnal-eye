@@ -142,7 +142,6 @@ class DetectionFilter:
             timestamp = datetime.now()
         
         # Calculate next active period
-        current_time = timestamp.time()
         current_datetime = timestamp.replace(second=0, microsecond=0)
         start_time = current_datetime.replace(hour=self.start_hour, minute=self.start_minute)
         end_time = current_datetime.replace(hour=self.end_hour, minute=self.end_minute)
