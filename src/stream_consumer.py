@@ -67,7 +67,6 @@ class StreamConsumer:
                 if self.retry_forever or retries < self.max_retries:
                     logger.info(f"Retrying in {self.retry_delay} seconds...")
                     time.sleep(self.retry_delay)
-                    continue
 
                 break
         
