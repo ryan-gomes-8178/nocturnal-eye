@@ -34,6 +34,15 @@ class StreamConsumer:
     def connect(self) -> bool:
         """Connect to the video stream"""
         retries = 0
+        
+        # Disable retry_forever if fallback is enabled (they are mutually exclusive)
+        effective_retry_forever = self.retry_forever and not self.fallback_enabled
+        if self.retry_forever and self.fallback_enabled:
+            logger.warning(
+                "Both retry_forever and fallback are enabled. "
+                "Disabling retry_forever to allow fallback mechanism to work. "
+                f"Will retry up to {self.max_retries} times before using fallback."
+            )
 
         while True:
             try:
@@ -55,7 +64,7 @@ class StreamConsumer:
                     
             except Exception as e:
                 retries += 1
-                if self.retry_forever:
+                if effective_retry_forever:
                     logger.warning(f"Connection attempt {retries} failed: {e}")
                 else:
                     logger.warning(f"Connection attempt {retries}/{self.max_retries} failed: {e}")
@@ -64,9 +73,10 @@ class StreamConsumer:
                     self.capture.release()
                     self.capture = None
                 
-                if self.retry_forever or retries < self.max_retries:
+                if effective_retry_forever or retries < self.max_retries:
                     logger.info(f"Retrying in {self.retry_delay} seconds...")
                     time.sleep(self.retry_delay)
+                    continue
 
                 break
         
