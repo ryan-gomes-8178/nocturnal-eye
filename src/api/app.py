@@ -476,7 +476,26 @@ def get_stream_config():
                     forwarded_host = parsed_host.hostname if parsed_host.hostname else None
                 else:
                     forwarded_host = None
-                host = forwarded_host or parsed.hostname
+                
+                # Use the forwarded host if available, otherwise extract from request.host
+                if forwarded_host and forwarded_host not in {'0.0.0.0', 'localhost', '127.0.0.1'}:
+                    host = forwarded_host
+                else:
+                    # Try to get the hostname from the request in a way that supports IPv6
+                    try:
+                        parsed_req_host = urlsplit('//' + request.host)
+                        host = parsed_req_host.hostname or request.host.split(':')[0]
+                    except Exception:
+                        # Fallback to the previous behavior if parsing fails for any reason
+                        host = request.host.split(':')[0]
+                    
+                    # If host is still 0.0.0.0, fall back to the server's actual IP or hostname
+                    # This should never be 0.0.0.0 for external clients
+                    if host in {'0.0.0.0', 'localhost', '127.0.0.1'}:
+                        # Last resort: use localhost and let the client figure it out
+                        # In practice, browsers will use the same hostname they used to access the page
+                        host = 'localhost'
+                
                 # Preserve the original stream port if present, otherwise fall back to configured public_port
                 port = parsed.port or stream_config.get('public_port')
                 # Wrap IPv6 addresses in brackets for URL formatting

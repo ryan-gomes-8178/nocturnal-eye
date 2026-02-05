@@ -380,17 +380,53 @@
                                     return;
                                 }
                                 const streamConfig = await response.json();
-                                const hlsSource = streamConfig.url;
+                                let hlsSource = streamConfig.url;
                                 
                                 if (!hlsSource) {
                                     showError('No stream URL configured. Please configure stream URL in config.yaml.');
                                     return;
                                 }
                                 
+                                // Fix invalid hostnames in the stream URL
+                                // Replace 0.0.0.0, localhost, or 127.0.0.1 with the current page's hostname
+                                try {
+                                    const url = new URL(hlsSource);
+                                    if (url.hostname === '0.0.0.0' || url.hostname === 'localhost' || url.hostname === '127.0.0.1') {
+                                        url.hostname = window.location.hostname;
+                                        hlsSource = url.toString();
+                                        console.log('Corrected stream URL to:', hlsSource);
+                                    }
+                                } catch (urlError) {
+                                    console.warn('Could not parse stream URL:', urlError);
+                                }
+                                
                                 const video = document.getElementById('liveStream');
                                 
                                 if (window.Hls && window.Hls.isSupported()) {
-                                    const hls = new Hls();
+                                    // Configure HLS.js to rewrite URLs that contain invalid hostnames
+                                    let hasLoggedHostnameCorrection = false; // Track if we've logged about hostname correction
+                                    const hls = new Hls({
+                                        xhrSetup: function(xhr, url) {
+                                            // Fix any URLs that contain 0.0.0.0, localhost, or 127.0.0.1
+                                            try {
+                                                const urlObj = new URL(url);
+                                                if (urlObj.hostname === '0.0.0.0' || urlObj.hostname === 'localhost' || urlObj.hostname === '127.0.0.1') {
+                                                    const originalHostname = urlObj.hostname;
+                                                    urlObj.hostname = window.location.hostname;
+                                                    const correctedUrl = urlObj.toString();
+                                                    xhr.open('GET', correctedUrl, true);
+                                                    // Log only once per session to avoid console spam
+                                                    if (!hasLoggedHostnameCorrection) {
+                                                        console.log('Correcting HLS chunk URLs: rewriting hostname from', originalHostname, 'to', window.location.hostname);
+                                                        hasLoggedHostnameCorrection = true;
+                                                    }
+                                                    return; // Don't let HLS.js open the connection again
+                                                }
+                                            } catch (e) {
+                                                console.warn('Could not parse URL:', url, e);
+                                            }
+                                        }
+                                    });
                                     hls.loadSource(hlsSource);
                                     hls.attachMedia(video);
                                     hls.on(Hls.Events.MANIFEST_PARSED, () => {
