@@ -24,6 +24,7 @@ class StreamConsumer:
         self.timeout = config['stream'].get('timeout', 30)
         self.max_retries = config['stream'].get('max_retries', 5)
         self.retry_delay = config['stream'].get('retry_delay', 10)
+        self.retry_forever = config['stream'].get('retry_forever', False)
         self.fps_target = config['stream'].get('fps_target', 2)
         
         self.capture = None
@@ -33,8 +34,8 @@ class StreamConsumer:
     def connect(self) -> bool:
         """Connect to the video stream"""
         retries = 0
-        
-        while retries < self.max_retries:
+
+        while True:
             try:
                 logger.info(f"Attempting to connect to stream: {self.stream_url}")
                 
@@ -54,15 +55,21 @@ class StreamConsumer:
                     
             except Exception as e:
                 retries += 1
-                logger.warning(f"Connection attempt {retries}/{self.max_retries} failed: {e}")
+                if self.retry_forever:
+                    logger.warning(f"Connection attempt {retries} failed: {e}")
+                else:
+                    logger.warning(f"Connection attempt {retries}/{self.max_retries} failed: {e}")
                 
                 if self.capture:
                     self.capture.release()
                     self.capture = None
                 
-                if retries < self.max_retries:
+                if self.retry_forever or retries < self.max_retries:
                     logger.info(f"Retrying in {self.retry_delay} seconds...")
                     time.sleep(self.retry_delay)
+                    continue
+
+                break
         
         # Try fallback if enabled
         if self.fallback_enabled and self.fallback_path:

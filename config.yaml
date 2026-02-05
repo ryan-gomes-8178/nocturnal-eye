@@ -19,6 +19,8 @@ stream:
   timeout: 30
   max_retries: 5
   retry_delay: 10
+  # Keep retrying until the stream is available (recommended for service startup)
+  retry_forever: true
 motion:
   # Sensitivity (lower = more sensitive, range: 1-100)
   # Reduced from 55 to 40 for better gecko detection
