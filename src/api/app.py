@@ -416,8 +416,13 @@ def get_stream_config():
                 if forwarded_host and forwarded_host not in {'0.0.0.0', 'localhost', '127.0.0.1'}:
                     host = forwarded_host
                 else:
-                    # Try to get the hostname from the request
-                    host = request.host.split(':')[0]
+                    # Try to get the hostname from the request in a way that supports IPv6
+                    try:
+                        parsed_req_host = urlsplit('//' + request.host)
+                        host = parsed_req_host.hostname or request.host.split(':')[0]
+                    except Exception:
+                        # Fallback to the previous behavior if parsing fails for any reason
+                        host = request.host.split(':')[0]
                     
                     # If host is still 0.0.0.0, fall back to the server's actual IP or hostname
                     # This should never be 0.0.0.0 for external clients
