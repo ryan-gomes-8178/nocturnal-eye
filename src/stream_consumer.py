@@ -53,6 +53,13 @@ class StreamConsumer:
                 else:
                     raise Exception("Failed to read frame from stream")
                     
+            except (KeyboardInterrupt, SystemExit):
+                # Allow graceful shutdown
+                logger.info("Shutdown signal received, stopping connection attempts")
+                if self.capture:
+                    self.capture.release()
+                    self.capture = None
+                raise
             except Exception as e:
                 retries += 1
                 if self.retry_forever:
@@ -67,6 +74,7 @@ class StreamConsumer:
                 if self.retry_forever or retries < self.max_retries:
                     logger.info(f"Retrying in {self.retry_delay} seconds...")
                     time.sleep(self.retry_delay)
+                    continue
 
                 break
         
