@@ -404,7 +404,7 @@
                                 
                                 if (window.Hls && window.Hls.isSupported()) {
                                     // Configure HLS.js to rewrite URLs that contain invalid hostnames
-                                    let hasLoggedUrlCorrection = false; // Track if we've logged about URL correction
+                                    let hasLoggedHostnameCorrection = false; // Track if we've logged about hostname correction
                                     const hls = new Hls({
                                         xhrSetup: function(xhr, url) {
                                             // Fix any URLs that contain 0.0.0.0, localhost, or 127.0.0.1
@@ -416,9 +416,9 @@
                                                     const correctedUrl = urlObj.toString();
                                                     xhr.open('GET', correctedUrl, true);
                                                     // Log only once per session to avoid console spam
-                                                    if (!hasLoggedUrlCorrection) {
+                                                    if (!hasLoggedHostnameCorrection) {
                                                         console.log('Correcting HLS chunk URLs: rewriting hostname from', originalHostname, 'to', window.location.hostname);
-                                                        hasLoggedUrlCorrection = true;
+                                                        hasLoggedHostnameCorrection = true;
                                                     }
                                                     return; // Don't let HLS.js open the connection again
                                                 }
