@@ -4,7 +4,7 @@ stream:
   url: "http://localhost:8090/nocturnal-eye/stream.m3u8"
   
   # Public configuration for client access
-  # These values are used when the configured URL is a device path or localhost
+  # These values are used when the configured URL is empty, a device path, or non-HTTP.
   public_port: 8090
   public_path: "/nocturnal-eye/stream.m3u8"
   
