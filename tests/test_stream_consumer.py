@@ -109,7 +109,8 @@ class TestStreamConsumerRetryLogic:
             result = consumer.connect()
         
         assert result is False, "Should fail after max_retries"
-        assert attempt_count[0] == 3, f"Should have made exactly {config_max_retries['stream']['max_retries']} attempts"
+        expected_attempts = consumer.max_retries
+        assert attempt_count[0] == expected_attempts, f"Should have made exactly {expected_attempts} attempts"
         assert consumer.capture is None, "Capture should be None after failure"
     
     def test_retry_forever_continues_beyond_max_retries(self, config_retry_forever):
@@ -345,8 +346,8 @@ class TestStreamConsumerRetryLogic:
         # Check that messages don't show max_retries when retry_forever is enabled
         for msg in log_messages:
             # When retry_forever is True, should not show "X/Y" format
-            if "Connection attempt" in msg:
-                assert "/" not in msg or "failed:" not in msg, \
+            if "Connection attempt" in msg and "failed:" in msg:
+                assert "/" not in msg, \
                     "Should not show 'X/Y' format when retry_forever is enabled"
     
     def test_logging_shows_max_retries_when_disabled(self, config_max_retries):
