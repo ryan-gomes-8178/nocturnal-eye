@@ -411,12 +411,13 @@
                                             try {
                                                 const urlObj = new URL(url);
                                                 if (urlObj.hostname === '0.0.0.0' || urlObj.hostname === 'localhost' || urlObj.hostname === '127.0.0.1') {
+                                                    const originalHostname = urlObj.hostname;
                                                     urlObj.hostname = window.location.hostname;
                                                     const correctedUrl = urlObj.toString();
                                                     xhr.open('GET', correctedUrl, true);
                                                     // Log only once per session to avoid console spam
                                                     if (!hasLoggedUrlCorrection) {
-                                                        console.log('Correcting HLS chunk URLs: rewriting hostname from', urlObj.hostname, 'to', window.location.hostname);
+                                                        console.log('Correcting HLS chunk URLs: rewriting hostname from', originalHostname, 'to', window.location.hostname);
                                                         hasLoggedUrlCorrection = true;
                                                     }
                                                     return; // Don't let HLS.js open the connection again
