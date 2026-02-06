@@ -123,28 +123,30 @@ class NotificationTrigger:
                 # NOTE: TerrariumPI's message API uses the singular 'notification' in the path
                 # (e.g. /api/notification/messages/<id>), which is different from the webhook
                 # endpoint (/api/notifications/webhook). This is intentional and not a typo.
-                logger.debug("Webhook endpoint not found, trying message-based approach...")
-                # Note: The message-based endpoint only accepts title and message fields,
-                # not custom types like the webhook endpoint. This is a limitation of the
-                # simpler message-based API.
-                response = requests.post(
-                    f"{self.terrariumpi_url}/api/notification/messages/{self.gecko_detection_message_id}",
-                    json={
-                        "title": notification_payload["title"],
-                        "message": notification_payload["message"],
-                        "type": notification_payload["type"],
-                    },
-                    timeout=5
-                )
-                if response.status_code in [200, 201, 204]:
-                    logger.info(f"✅ Gecko detection notification sent! {zone or 'General area'}")
-                    self.last_notification_time = datetime.now()
-                    return True
-                else:
-                    logger.warning(f"Notification endpoint returned {response.status_code}: {response.text}")
+                # This sends to all configured notification services.
+                logger.debug("Webhook endpoint not found (404), trying message-based fallback endpoint...")
+                try:
+                    response = requests.post(
+                        f"{self.terrariumpi_url}/api/notification/messages/{self.gecko_detection_message_id}",
+                        json={
+                            "title": notification_payload["title"],
+                            "message": notification_payload["message"],
+                            "type": notification_payload["type"],
+                        },
+                        timeout=5
+                    )
+                    if response.status_code in [200, 201, 204]:
+                        logger.info(f"✅ Gecko detection notification sent via fallback endpoint! {zone or 'General area'}")
+                        self.last_notification_time = datetime.now()
+                        return True
+                    else:
+                        logger.warning(f"Fallback notification endpoint returned {response.status_code}: {response.text}")
+                        return False
+                except requests.exceptions.RequestException as fallback_error:
+                    logger.warning(f"Failed to send notification via fallback endpoint: {fallback_error}")
                     return False
             else:
-                logger.warning(f"Notification endpoint returned {response.status_code}: {response.text}")
+                logger.warning(f"Primary webhook endpoint returned {response.status_code}: {response.text}")
                 return False
                 
         except requests.exceptions.RequestException as e:
