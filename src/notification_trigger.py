@@ -120,13 +120,20 @@ class NotificationTrigger:
                 # The message_id (d93a467a37dad33b55b2c816e48554cf) should match
                 # a configured notification message in TerrariumPI's settings.
                 # Reference: TerrariumPI notification messages configuration
+                # NOTE: TerrariumPI's message API uses the singular 'notification' in the path
+                # (e.g. /api/notification/messages/<id>), which is different from the webhook
+                # endpoint (/api/notifications/webhook). This is intentional and not a typo.
                 logger.debug("Webhook endpoint not found, trying message-based approach...")
                 # Note: The message-based endpoint only accepts title and message fields,
                 # not custom types like the webhook endpoint. This is a limitation of the
                 # simpler message-based API.
                 response = requests.post(
                     f"{self.terrariumpi_url}/api/notification/messages/{self.gecko_detection_message_id}",
-                    json={"title": notification_payload["title"], "message": notification_payload["message"]},
+                    json={
+                        "title": notification_payload["title"],
+                        "message": notification_payload["message"],
+                        "type": notification_payload["type"],
+                    },
                     timeout=5
                 )
                 if response.status_code in [200, 201, 204]:
