@@ -1,6 +1,25 @@
 """
 Nocturnal Eye Notification Trigger
 Sends notifications to TerrariumPI when gecko motion is detected
+
+TerrariumPI Notification API Integration:
+This module integrates with TerrariumPI's notification system using two different approaches:
+
+1. Primary: Webhook-based notifications (/api/notifications/webhook)
+   - More modern, flexible approach
+   - Allows custom notification types and structured payloads
+   - Enables TerrariumPI to route notifications through its configured services
+   - Recommended for new integrations
+   
+2. Fallback: Message-based notifications (/api/notification/messages/{message_id})
+   - Direct message delivery approach
+   - Uses pre-configured message templates in TerrariumPI
+   - Simpler but less flexible
+   - Used when webhook endpoint is not available (404 response)
+
+Note: Verify these endpoints against your TerrariumPI version's API documentation.
+TerrariumPI API docs: https://theyosh.github.io/TerrariumPI/api/
+The endpoints used here are based on TerrariumPI v4.x notification system.
 """
 
 import requests
@@ -24,6 +43,10 @@ class NotificationTrigger:
         self.terrariumpi_url = terrariumpi_url
         self.rate_limit_seconds = rate_limit_seconds
         self.last_notification_time = None
+        # Pre-configured message ID in TerrariumPI for gecko detection notifications
+        # This ID should correspond to a notification message template configured
+        # in TerrariumPI's notification settings. Used as fallback when webhook
+        # endpoint is unavailable.
         self.gecko_detection_message_id = "d93a467a37dad33b55b2c816e48554cf"
     
     def should_notify(self):
@@ -59,15 +82,21 @@ class NotificationTrigger:
             if confidence:
                 message += f"\nConfidence: {confidence:.1%}"
             
-            # Use TerrariumPI's webhook endpoint to trigger notification
-            # This bypasses the need for a custom endpoint and uses TerrariumPI's built-in notification system
+            # Prepare notification payload for TerrariumPI
             notification_payload = {
                 "title": "I SAW MARTY!!!!",
                 "message": message,
                 "type": "gecko_detection"
             }
             
-            # Try the direct webhook approach first
+            # Primary approach: Use TerrariumPI's webhook endpoint
+            # Endpoint: POST /api/notifications/webhook
+            # Why chosen: This is TerrariumPI's recommended modern notification API that:
+            #   - Accepts custom notification types and structured JSON payloads
+            #   - Routes notifications through all configured services (Telegram, etc.)
+            #   - Provides flexibility for future notification enhancements
+            #   - Follows RESTful conventions for webhook integrations
+            # Reference: TerrariumPI v4.x notification system documentation
             response = requests.post(
                 f"{self.terrariumpi_url}/api/notifications/webhook",
                 json=notification_payload,
@@ -79,12 +108,25 @@ class NotificationTrigger:
                 self.last_notification_time = datetime.now()
                 return True
             elif response.status_code == 404:
-                # Fallback: Try using the message-based endpoint directly
+                # Fallback approach: Use message-based endpoint
+                # Endpoint: POST /api/notification/messages/{message_id}
+                # Why used: Provides compatibility with older TerrariumPI versions or
+                #   installations where the webhook endpoint is not available.
+                # This approach:
+                #   - Sends directly to a pre-configured message template ID
+                #   - Requires the message ID to be set up in TerrariumPI beforehand
+                #   - Less flexible but more direct for simple notifications
+                #   - Ensures notifications still work even without webhook support
+                # The message_id (d93a467a37dad33b55b2c816e48554cf) should match
+                # a configured notification message in TerrariumPI's settings.
+                # Reference: TerrariumPI notification messages configuration
                 # NOTE: TerrariumPI's message API uses the singular 'notification' in the path
                 # (e.g. /api/notification/messages/<id>), which is different from the webhook
                 # endpoint (/api/notifications/webhook). This is intentional and not a typo.
-                # This sends to all configured notification services.
                 logger.debug("Webhook endpoint not found, trying message-based approach...")
+                # Note: The message-based endpoint only accepts title and message fields,
+                # not custom types like the webhook endpoint. This is a limitation of the
+                # simpler message-based API.
                 response = requests.post(
                     f"{self.terrariumpi_url}/api/notification/messages/{self.gecko_detection_message_id}",
                     json={
