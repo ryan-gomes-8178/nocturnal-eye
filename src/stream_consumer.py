@@ -62,6 +62,13 @@ class StreamConsumer:
                 else:
                     raise Exception("Failed to read frame from stream")
                     
+            except (KeyboardInterrupt, SystemExit):
+                # Allow graceful shutdown
+                logger.info("Shutdown signal received, stopping connection attempts")
+                if self.capture:
+                    self.capture.release()
+                    self.capture = None
+                raise
             except Exception as e:
                 retries += 1
                 if effective_retry_forever:
