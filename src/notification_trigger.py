@@ -121,6 +121,9 @@ class NotificationTrigger:
                 # a configured notification message in TerrariumPI's settings.
                 # Reference: TerrariumPI notification messages configuration
                 logger.debug("Webhook endpoint not found, trying message-based approach...")
+                # Note: The message-based endpoint only accepts title and message fields,
+                # not custom types like the webhook endpoint. This is a limitation of the
+                # simpler message-based API.
                 response = requests.post(
                     f"{self.terrariumpi_url}/api/notification/messages/{self.gecko_detection_message_id}",
                     json={"title": notification_payload["title"], "message": notification_payload["message"]},
