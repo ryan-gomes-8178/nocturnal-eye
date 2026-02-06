@@ -50,22 +50,27 @@ class NotificationTrigger:
             return False
         
         try:
-            # Call TerrariumPI notification endpoint
-            notification_data = {
-                "title": "I SAW MARTY!!!!",
-                "message": "Nocturnal Eye motion detection captured activity! 🦎"
-            }
+            # Build message with detection details
+            message = "Nocturnal Eye motion detection captured activity! 🦎"
             
             if zone:
-                notification_data["message"] += f"\nZone: {zone}"
+                message += f"\nZone: {zone}"
             
             if confidence:
-                notification_data["message"] += f"\nConfidence: {confidence:.1%}"
+                message += f"\nConfidence: {confidence:.1%}"
             
-            # POST to TerrariumPI to trigger the notification
+            # Use TerrariumPI's webhook endpoint to trigger notification
+            # This bypasses the need for a custom endpoint and uses TerrariumPI's built-in notification system
+            notification_payload = {
+                "title": "I SAW MARTY!!!!",
+                "message": message,
+                "type": "gecko_detection"
+            }
+            
+            # Try the direct webhook approach first
             response = requests.post(
-                f"{self.terrariumpi_url}/api/notifications/message/{self.gecko_detection_message_id}/send",
-                json=notification_data,
+                f"{self.terrariumpi_url}/api/notifications/webhook",
+                json=notification_payload,
                 timeout=5
             )
             
@@ -73,6 +78,22 @@ class NotificationTrigger:
                 logger.info(f"✅ Gecko detection notification sent! {zone or 'General area'}")
                 self.last_notification_time = datetime.now()
                 return True
+            elif response.status_code == 404:
+                # Fallback: Try using the message-based endpoint directly
+                # This sends to all configured notification services
+                logger.debug("Webhook endpoint not found, trying message-based approach...")
+                response = requests.post(
+                    f"{self.terrariumpi_url}/api/notification/messages/{self.gecko_detection_message_id}",
+                    json={"title": notification_payload["title"], "message": notification_payload["message"]},
+                    timeout=5
+                )
+                if response.status_code in [200, 201, 204]:
+                    logger.info(f"✅ Gecko detection notification sent! {zone or 'General area'}")
+                    self.last_notification_time = datetime.now()
+                    return True
+                else:
+                    logger.warning(f"Notification endpoint returned {response.status_code}: {response.text}")
+                    return False
             else:
                 logger.warning(f"Notification endpoint returned {response.status_code}: {response.text}")
                 return False
