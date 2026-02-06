@@ -455,10 +455,10 @@ def test_notification_trigger():
         assert mock_post.called, "POST request should be made"
         call_args = mock_post.call_args
         
-        # Check URL
-        expected_url = f"{trigger.terrariumpi_url}/api/notifications/message/{trigger.gecko_detection_message_id}/send"
+        # Check URL - should use the webhook endpoint
+        expected_url = f"{trigger.terrariumpi_url}/api/notifications/webhook"
         assert call_args[0][0] == expected_url, f"URL should be {expected_url}"
-        logger.info(f"  ✓ Correct API endpoint called")
+        logger.info(f"  ✓ Correct API endpoint called (webhook)")
         
         # Check payload contains expected data
         json_data = call_args[1]['json']
@@ -505,20 +505,60 @@ def test_notification_trigger():
         assert mock_post.call_count == 1, "Only one POST request should be made"
         logger.info("  ✓ Rate limiting correctly prevents duplicate notifications")
     
-    # Test 7: HTTP error handling - 4xx response
-    logger.info("✓ Testing error handling - HTTP 404...")
+    # Test 7: HTTP error handling - 404 response with fallback
+    logger.info("✓ Testing fallback on 404 - webhook not available...")
     with patch('src.notification_trigger.requests.post') as mock_post:
-        mock_response = Mock()
-        mock_response.status_code = 404
-        mock_response.text = "Not Found"
-        mock_post.return_value = mock_response
+        # First call (webhook) returns 404, second call (fallback) returns 404
+        mock_response_404 = Mock()
+        mock_response_404.status_code = 404
+        mock_response_404.text = "Not Found"
+        mock_post.return_value = mock_response_404
         
         trigger.last_notification_time = None
         result = trigger.send_gecko_detection_notification(confidence=0.8)
         
-        assert result == False, "Notification should fail with 404 response"
+        # Should fail because both endpoints returned 404
+        assert result == False, "Notification should fail when both endpoints return 404"
         assert trigger.last_notification_time is None, "Last notification time should not be set on failure"
-        logger.info("  ✓ HTTP 404 error handled correctly")
+        
+        # Verify two POST requests were made (webhook + fallback)
+        assert mock_post.call_count == 2, "Should try webhook endpoint first, then fallback"
+        
+        # Verify first call was to webhook endpoint
+        first_call_url = mock_post.call_args_list[0][0][0]
+        assert "/api/notifications/webhook" in first_call_url, "First call should be to webhook endpoint"
+        
+        # Verify second call was to fallback endpoint
+        second_call_url = mock_post.call_args_list[1][0][0]
+        assert "/api/notification/messages/" in second_call_url, "Second call should be to fallback endpoint"
+        
+        logger.info("  ✓ HTTP 404 triggers fallback correctly")
+    
+    # Test 7b: HTTP error handling - 404 webhook but fallback succeeds
+    logger.info("✓ Testing successful fallback when webhook returns 404...")
+    with patch('src.notification_trigger.requests.post') as mock_post:
+        # First call (webhook) returns 404, second call (fallback) succeeds
+        mock_response_404 = Mock()
+        mock_response_404.status_code = 404
+        mock_response_404.text = "Not Found"
+        
+        mock_response_200 = Mock()
+        mock_response_200.status_code = 200
+        mock_response_200.text = "OK"
+        
+        # Return 404 first, then 200
+        mock_post.side_effect = [mock_response_404, mock_response_200]
+        
+        trigger.last_notification_time = None
+        result = trigger.send_gecko_detection_notification(confidence=0.8)
+        
+        # Should succeed via fallback
+        assert result == True, "Notification should succeed via fallback endpoint"
+        assert trigger.last_notification_time is not None, "Last notification time should be set on success"
+        
+        # Verify two POST requests were made
+        assert mock_post.call_count == 2, "Should try webhook endpoint first, then fallback"
+        logger.info("  ✓ Fallback endpoint succeeds when webhook returns 404")
     
     # Test 8: HTTP error handling - 5xx response
     logger.info("✓ Testing error handling - HTTP 500...")
