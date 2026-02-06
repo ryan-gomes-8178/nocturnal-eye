@@ -80,7 +80,10 @@ class NotificationTrigger:
                 return True
             elif response.status_code == 404:
                 # Fallback: Try using the message-based endpoint directly
-                # This sends to all configured notification services
+                # NOTE: TerrariumPI's message API uses the singular 'notification' in the path
+                # (e.g. /api/notification/messages/<id>), which is different from the webhook
+                # endpoint (/api/notifications/webhook). This is intentional and not a typo.
+                # This sends to all configured notification services.
                 logger.debug("Webhook endpoint not found, trying message-based approach...")
                 response = requests.post(
                     f"{self.terrariumpi_url}/api/notification/messages/{self.gecko_detection_message_id}",
