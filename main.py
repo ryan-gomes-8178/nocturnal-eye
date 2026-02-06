@@ -195,7 +195,7 @@ class NocturnalEye:
                     self.snapshot_manager.save_snapshot(frame, motion_events, self.zone_analyzer.zones if self.zone_analyzer else None)
                     
                     # Trigger Telegram notification to TerrariumPI (only during active publishing hours)
-                    if motion_events and self.snapshot_manager.should_publish_snapshot(current_time):
+                    if self.snapshot_manager.should_publish_snapshot(current_time):
                         # Use the first motion event for notification
                         primary_event = motion_events[0]
                         confidence = primary_event.confidence
