@@ -19,6 +19,7 @@ stream:
   timeout: 30
   max_retries: 5
   retry_delay: 10
+  retry_forever: true
 motion:
   # Sensitivity (lower = more sensitive, range: 1-100)
   # Reduced from 55 to 30 after lighting change for better gecko detection
