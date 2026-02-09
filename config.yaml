@@ -21,7 +21,7 @@ stream:
   retry_delay: 10
 motion:
   # Sensitivity (lower = more sensitive, range: 1-100)
-  # Reduced from 55 to 40 for better gecko detection
+  # Reduced from 55 to 30 after lighting change for better gecko detection
   sensitivity: 30
   
   # Minimum area in pixels to consider as gecko
