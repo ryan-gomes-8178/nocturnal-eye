@@ -19,22 +19,21 @@ stream:
   timeout: 30
   max_retries: 5
   retry_delay: 10
-  # Keep retrying until the stream is available (recommended for service startup)
   retry_forever: true
 motion:
   # Sensitivity (lower = more sensitive, range: 1-100)
-  # Reduced from 55 to 40 for better gecko detection
-  sensitivity: 40
+  # Reduced from 55 to 30 after lighting change for better gecko detection
+  sensitivity: 30
   
   # Minimum area in pixels to consider as gecko
-  # Reduced from 1200 to 800 to catch smaller movements
-  min_area: 800
+  # Reduced from 1200 to 700 to catch smaller movements
+  min_area: 700
   
   # Maximum area in pixels to consider as gecko
-  max_area: 8000
+  max_area: 9000
   
   # Number of frames to use for background history
-  history_frames: 1000
+  history_frames: 1200
   
   # Detect and remove shadows
   detect_shadows: true
