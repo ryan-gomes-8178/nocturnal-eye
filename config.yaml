@@ -25,7 +25,7 @@ motion:
   sensitivity: 30
   
   # Minimum area in pixels to consider as gecko
-  # Reduced from 1200 to 800 to catch smaller movements
+  # Reduced from 1200 to 700 to catch smaller movements
   min_area: 700
   
   # Maximum area in pixels to consider as gecko
