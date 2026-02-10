@@ -19,6 +19,7 @@ from src.tracker import ObjectTracker, ZoneAnalyzer
 from src.notification_trigger import notify_gecko_detection
 from src.visualizer import HeatmapGenerator
 from src.snapshot_manager import SnapshotManager
+from src.nature_doc_client import NatureDocumentaryClient
 
 
 class NocturnalEye:
@@ -39,6 +40,7 @@ class NocturnalEye:
             self.tracker = ObjectTracker(self.config)
             self.heatmap_generator = HeatmapGenerator(self.config)
             self.snapshot_manager = SnapshotManager(self.config)
+            self.nature_doc_client = NatureDocumentaryClient(self.config)
             
             # Load zones from database
             zones = self.database.get_zones()
@@ -163,6 +165,7 @@ class NocturnalEye:
         # Get frame size for heatmap generation
         frame_size = self.stream_consumer.get_frame_size()
         logger.info(f"Frame size: {frame_size[0]}x{frame_size[1]}")
+        self.nature_doc_client.set_frame_size(frame_size)
         
         # Main processing loop
         frame_count = 0
@@ -188,6 +191,14 @@ class NocturnalEye:
                 motion_events = self.motion_detector.detect_motion(frame)
                 
                 if motion_events:
+                    annotated_events = []
+                    if self.zone_analyzer:
+                        for event in motion_events:
+                            zone_name = self.zone_analyzer.get_zone_for_position(event.centroid)
+                            annotated_events.append({"event": event, "zone": zone_name})
+                    else:
+                        annotated_events = [{"event": event, "zone": None} for event in motion_events]
+                    
                     # Update tracker
                     tracked_objects = self.tracker.update(motion_events, current_time)
                     
@@ -196,19 +207,13 @@ class NocturnalEye:
                     
                     # Trigger Telegram notification to TerrariumPI (only during active publishing hours)
                     if self.snapshot_manager.should_publish_snapshot(current_time):
-                        # Use the first motion event for notification
                         primary_event = motion_events[0]
                         confidence = primary_event.confidence
-                        
-                        # Check which zone the motion is in
-                        zone_name = None
-                        if self.zone_analyzer and hasattr(primary_event, 'centroid'):
-                            for zone in self.zone_analyzer.zones:
-                                if self.zone_analyzer.point_in_zone(primary_event.centroid, zone):
-                                    zone_name = zone['name']
-                                    break
-                        
-                        notify_gecko_detection(confidence=confidence, zone=zone_name)
+                        primary_zone = annotated_events[0]["zone"] if annotated_events else None
+                        notify_gecko_detection(confidence=confidence, zone=primary_zone)
+                    
+                    # Publish enriched events to TerrariumPI highlight pipeline
+                    self.nature_doc_client.publish_events(annotated_events, current_time)
                     
                     # Add to batch for database insertion
                     batch_events.extend(motion_events)

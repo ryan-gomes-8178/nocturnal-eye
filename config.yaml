@@ -154,3 +154,15 @@ performance:
   nice_value: 10
   use_gpu: false
   frame_buffer_size: 10
+
+nature_documentary:
+  enabled: true
+  terrariumpi_url: "http://localhost:8090"
+  event_endpoint: "/api/nature-doc/events"
+  api_key: ""
+  camera_id: "terrarium_cam_main"
+  min_confidence: 0.35
+  cooldown_seconds: 45
+  track_cooldown_seconds: 25
+  send_full_frame_events: false
+  max_batch_size: 5

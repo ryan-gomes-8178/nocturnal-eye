@@ -21,6 +21,7 @@ class MotionEvent:
     bounding_box: Tuple[int, int, int, int]  # (x, y, w, h)
     confidence: float
     contour: np.ndarray = None
+    track_id: Optional[int] = None
 
 
 class MotionDetector:

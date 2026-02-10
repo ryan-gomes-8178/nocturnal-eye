@@ -122,6 +122,7 @@ class ObjectTracker:
             
             # Update matched track
             if matched and best_match_id is not None:
+                event.track_id = best_match_id
                 self.tracked_objects[best_match_id].update(
                     event.centroid,
                     event.area,
@@ -133,6 +134,7 @@ class ObjectTracker:
         
         # Create new tracks for unmatched events
         for event in unmatched_events:
+            event.track_id = self.next_track_id
             new_track = TrackedObject(
                 track_id=self.next_track_id,
                 first_seen=timestamp,
