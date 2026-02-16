@@ -26,11 +26,15 @@ motion:
   sensitivity: 30
   
   # Minimum area in pixels to consider as gecko
-  # Reduced from 1200 to 700 to catch smaller movements
-  min_area: 700
+  # Tightened based on gecko body area distribution (~2.5k px^2)
+  min_area: 2200
   
   # Maximum area in pixels to consider as gecko
-  max_area: 9000
+  # Clamped to drop large glare blobs
+  max_area: 8000
+  
+  # Minimum detection confidence (ratio of area to max_area)
+  min_confidence: 0.2
   
   # Number of frames to use for background history
   history_frames: 1200
