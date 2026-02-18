@@ -36,6 +36,13 @@ motion:
   # Minimum detection confidence (ratio of area to max_area)
   min_confidence: 0.2
   
+  # Minimum bounding-box dimensions (px)
+  min_width: 60
+  min_height: 45
+  
+  # Maximum aspect ratio (long side / short side)
+  max_aspect_ratio: 4.0
+  
   # Number of frames to use for background history
   history_frames: 1200
   
