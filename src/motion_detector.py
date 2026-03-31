@@ -37,6 +37,11 @@ class MotionDetector:
         self.detect_shadows = config['motion'].get('detect_shadows', True)
         self.min_confidence = config['motion'].get('min_confidence', 0.0)
         
+        # Shape filters
+        self.min_width = config['motion'].get('min_width', 0)
+        self.min_height = config['motion'].get('min_height', 0)
+        self.max_aspect_ratio = config['motion'].get('max_aspect_ratio', None)
+
         # Region of Interest
         roi_config = config['motion'].get('region_of_interest', {})
         self.roi_enabled = roi_config.get('enabled', False)
@@ -141,6 +146,16 @@ class MotionDetector:
             
             # Calculate bounding box
             x, y, w, h = cv2.boundingRect(contour)
+
+            # Filter by bounding box dimensions
+            if self.min_width and w < self.min_width:
+                continue
+            if self.min_height and h < self.min_height:
+                continue
+            if self.max_aspect_ratio:
+                aspect_ratio = max(w / max(h, 1), h / max(w, 1))
+                if aspect_ratio > self.max_aspect_ratio:
+                    continue
             
             # Adjust coordinates if ROI is used
             if self.roi_enabled and self.roi:
